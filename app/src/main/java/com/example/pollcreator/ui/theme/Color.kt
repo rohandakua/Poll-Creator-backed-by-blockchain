@@ -14,6 +14,10 @@ val Pink40 = Color(0xFF7D5260)
 
 val MainBackground = Color(0xFFb0db9c)
 val ButtonBackground = Color(0xCC11363F)
-val TextFieldBackground = Color(0x9911363F)
+val TextFieldBackground = Color(0x7011363F)
 val TextOnBackgroundLight = Color(0xFF5d856c)
+val CardBorderDark = Color(0xFF061c04)
 val TextOnBackgroundDark = Color(0xFF11363F)
+val TextFieldBackgroundLight = Color(0xFF668F70)
+val CardBackgroundLight = Color(0xFF9BC690)
+
