@@ -152,6 +152,7 @@ fun login_page(
     var password by remember {
         mutableStateOf("")
     }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     var panNo by remember {
         mutableStateOf("")
@@ -167,7 +168,6 @@ fun login_page(
         mutableStateOf<Int?>(null)
     }
 
-    var passwordVisible by remember { mutableStateOf(false) }
 
 
     var gender by remember {

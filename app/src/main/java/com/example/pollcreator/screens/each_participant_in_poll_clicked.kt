@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -40,16 +41,15 @@ import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
 
 
-
 @Preview(device = "spec:width=450dp,height=150dp,dpi=480")
 @Composable
-public fun each_poll_item(
+public fun each_participant_in_poll_clicked(
     modifier: Modifier = Modifier,
-    pollName: String = "nationals election",
-    pollAgenda: String = "choose the prime minister of india choose the prime minister of india why not choosing",
-    dateOfPoll: String = "20 aug 2024",
-    timeOfPoll: String = "10:55 am to 10:55 pm",
-    onClick : ()->Unit = {}
+    name: String = "mamta madarchod banerjee",
+    agenda: String = "choose the prime minister of india choose the prime minister of india why not choosing",
+    gender: String = "female",
+    disclosedIncome: Long = 55555555555,
+    age: Int = 20
 ) {
     Box(
         modifier = modifier
@@ -57,7 +57,7 @@ public fun each_poll_item(
 
     ) {
         Card(
-            modifier = Modifier.clickable { onClick }
+            modifier = Modifier
                 .fillMaxSize(.96f)
                 .padding(4.dp),
             colors = CardDefaults.elevatedCardColors(containerColor = MainBackground),
@@ -72,23 +72,19 @@ public fun each_poll_item(
 
 
                     Text(
-                        text = pollName.uppercase(),
+                        text = capitalizeEachWord(name),
                         fontWeight = FontWeight.SemiBold,
                         color = TextOnBackgroundDark,
                         maxLines = 1,
-                        fontSize = 25.sp,
-
-                        style = TextStyle(
-                            textDecoration = TextDecoration.Underline
-                        ),
+                        fontSize = 20.sp,
                         modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 7.dp)
                     )
                 }
                 Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = pollAgenda,
+                        text = agenda,
                         modifier = Modifier
-                            .padding(start = 8.dp)
+                            .padding(start = 8.dp, bottom = 4.dp)
                             .weight(1.25f),
                         maxLines = 4,
                         fontSize = 16.sp,
@@ -97,21 +93,27 @@ public fun each_poll_item(
 
                     Column(
                         Modifier
-                            .weight(1f)
+                            .weight(1f).fillMaxHeight()
                             .padding(4.dp),
                         verticalArrangement = Arrangement.SpaceEvenly,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = dateOfPoll,
-                            fontSize = 16.sp,
+                            text = age.toString(),
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.DarkGray
                         )
 
                         Text(
-                            text = timeOfPoll,
-                            fontSize = 15.sp,
+                            text = gender.capitalize(),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.DarkGray
+                        )
+                        Text(
+                            text = "₹ "+disclosedIncome.toString(),
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.DarkGray
                         )
