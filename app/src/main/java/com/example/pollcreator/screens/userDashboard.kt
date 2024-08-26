@@ -3,9 +3,7 @@ package com.example.pollcreator.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,19 +23,20 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.motionEventSpy
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
+import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBorderDark
 import com.example.pollcreator.ui.theme.MainBackground
@@ -47,10 +46,11 @@ import com.example.pollcreator.ui.theme.TextOnBackgroundLight
 
 @Preview
 @Composable
-public fun acitve_polls(
+public fun userDashboard(
     modifier: Modifier = Modifier,
     onPrevVoteButton: () -> Unit = {},
-    onProfileButton: () -> Unit = {}
+    onProfileButton: () -> Unit = {},
+    navController : NavController = rememberNavController()
 ) {
     Box(
         modifier = modifier
@@ -162,7 +162,10 @@ public fun acitve_polls(
                     Modifier
                         .padding(end = 30.dp)
                         .size(50.dp)
-                        .clickable { onProfileButton }
+                        .clickable {
+
+                            navController.navigate("profile")
+                        }
 
                 )
 

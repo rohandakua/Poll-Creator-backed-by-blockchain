@@ -1,5 +1,6 @@
 package com.example.pollcreator.screens
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,141 +39,61 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
+import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.onlineStorage.fireBaseDataModel
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
-
-@Preview
-@Composable
-private fun viewUserLogin() {
-    login_page(
-        MainHeading = "Login",
-        SubHeading = "Please sign in to continue",
-        isLogin = true,
-        isName = false,
-        isAge = false,
-        isPan = false
-    )
-
-}
-
-@Preview
-@Composable
-private fun viewAdminLogin() {
-    login_page(
-        MainHeading = "Login",
-        SubHeading = "Please sign in to continue",
-        isLogin = true,
-        isName = false,
-        isAge = false,
-        isPan = true
-    )
-
-}
-
-@Preview
-@Composable
-private fun viewUserRegister() {
-    login_page(
-        MainHeading = "Create Account",
-        SubHeading = "Please fill in the details below",
-        isLogin = false,
-        isName = true,
-        isAge = true,
-        isPan = false
-    )
-
-}
-
-@Preview
-@Composable
-private fun viewAdminRegister() {
-    login_page(
-        MainHeading = "Create Account",
-        SubHeading = "Please fill in the details below",
-        isLogin = false,
-        isName = true,
-        isAge = true,
-        isPan = true
-    )
-
-}
-
-@Preview
-@Composable
-private fun bb(){
-    Box(modifier = Modifier.fillMaxSize(). background(color = Color.Red)){
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.elevatedCardColors(containerColor = Color(0xFF8FBC8F), contentColor = Color.White , disabledContentColor = Color.Red, disabledContainerColor = Color.Cyan ),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 10.dp, pressedElevation = 2.dp, focusedElevation = 8.dp)
-        ) {
-            // Content of the card goes here
-            // For this example, it's just an empty green surface
-        }
-    }
-
-    
-}
+import com.example.pollcreator.viewModel.signInViewModel
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun login_page(
     modifier: Modifier = Modifier,
-    MainHeading: String,
-    SubHeading: String,
-    isLogin: Boolean,
-    isName: Boolean,
-    isAge: Boolean,
-    isPan: Boolean,
-    onMainBtnClick: () -> Unit = {},
-    onLastBtnClick: () -> Unit = {}
+    isAdminFromSuper: Boolean = true,
+    isLoginFromSuper: Boolean,
+
+    navController: NavController = rememberNavController()
 ) {
-    var aadharNo by remember {
-        mutableStateOf<Long?>(null)
-    }
-    var password by remember {
-        mutableStateOf("")
-    }
+    val viewModel : signInViewModel = allSingeltonObjects.signInViewModel
+
+    val isLogin by viewModel.isLogin
+    val isAdmin by viewModel.isAdmin
+
+    viewModel.setIsLogin(isLoginFromSuper)
+    viewModel.setIsAdmin(isAdminFromSuper)
+    val isSuccess by viewModel.isSuccess
+
+    var MainHeading: String = if (isLogin) "Login" else "Create Account"
+    var SubHeading: String =
+        if (isLogin) "Please sign in to continue" else "Please fill in the details below"
+    var isName: Boolean = if (isLogin) false else true
+    var isAge: Boolean = if (isLogin) false else true
+    var isPan: Boolean = isAdmin
     var passwordVisible by remember { mutableStateOf(false) }
 
-    var panNo by remember {
-        mutableStateOf("")
-    }
-
-
-    var name by remember {
-        mutableStateOf("")
-    }
-
-
-    var age by remember {
-        mutableStateOf<Int?>(null)
-    }
-
-
-
-    var gender by remember {
-        mutableStateOf("")
-    }
+    val aadharNo by viewModel.aadharNo
+    val password by viewModel.password
+    val age by viewModel.age
+    val gender by viewModel.gender
+    val name by viewModel.name
+    val panNo by viewModel.panNo
 
 
     Box(
@@ -228,7 +149,7 @@ fun login_page(
                     if (isName) {
                         TextField(
                             value = name,
-                            onValueChange = { name = it },
+                            onValueChange = { viewModel.setName(it) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(25.dp),
                             colors = TextFieldDefaults.textFieldColors(
@@ -240,7 +161,7 @@ fun login_page(
                                 unfocusedTextColor = TextOnBackgroundDark
 
 
-                                ),
+                            ),
                             singleLine = true,
                             textStyle = TextStyle(
                                 fontSize = 20.sp,
@@ -272,7 +193,7 @@ fun login_page(
                     if (isAge) {
                         TextField(
                             value = age?.toString() ?: "",
-                            onValueChange = { age = it.toIntOrNull() },
+                            onValueChange = { viewModel.setAge(it.toIntOrNull()?: 0) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(25.dp),
                             singleLine = true,
@@ -336,8 +257,8 @@ fun login_page(
                                 elevation = CardDefaults.cardElevation(20.dp)
                             ) {
                                 RadioButton(
-                                    selected = if(gender.equals("male")) true else false,
-                                    onClick = { gender = "male" },
+                                    selected = if (gender.equals("male")) true else false,
+                                    onClick = { viewModel.setGender("male") },
                                     colors = RadioButtonColors(
                                         selectedColor = Color.White,
                                         unselectedColor = Color.Transparent,
@@ -362,8 +283,8 @@ fun login_page(
                                 elevation = CardDefaults.cardElevation(20.dp)
                             ) {
                                 RadioButton(
-                                    selected = if(gender.equals("female")) true else false,
-                                    onClick = { gender = "female" },
+                                    selected = if (gender.equals("female")) true else false,
+                                    onClick = { viewModel.setGender("female") },
                                     colors = RadioButtonColors(
                                         selectedColor = Color.White,
                                         unselectedColor = Color.Transparent,
@@ -381,8 +302,8 @@ fun login_page(
 
                     if (isPan) {
                         TextField(
-                            value = panNo,
-                            onValueChange = { panNo = it },
+                            value = panNo ?: "",
+                            onValueChange = { viewModel.setPanNo(it) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(25.dp),
                             singleLine = true,
@@ -415,7 +336,7 @@ fun login_page(
                                 )
                             },
                             keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number
+                                keyboardType = KeyboardType.Text
                             )
 
                         )
@@ -424,7 +345,7 @@ fun login_page(
 
                     TextField(
                         value = aadharNo?.toString() ?: "",
-                        onValueChange = { aadharNo = it.toLongOrNull() },
+                        onValueChange = { viewModel.setAadharNo(it.toLongOrNull()?: 0L) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(25.dp),
                         singleLine = true,
@@ -459,7 +380,7 @@ fun login_page(
                     )
                     TextField(
                         value = password?.toString() ?: "",
-                        onValueChange = { password = it.toString() },
+                        onValueChange = { viewModel.setPassword(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(25.dp),
                         colors = TextFieldDefaults.textFieldColors(
@@ -516,7 +437,59 @@ fun login_page(
 
                     //
                     Card(modifier = Modifier
-                        .clickable { onMainBtnClick }
+                        .clickable {
+                            Log.d("buttonClickedOrNot", "clickeddddd")
+                            allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
+
+
+
+
+                            if (isLogin && !isAdmin) {
+                                // user login
+                                Log.d("signIn_admin", "registering admin")
+                                viewModel.viewModelScope.launch {
+                                    viewModel.signInUser()
+                                }
+
+                                Log.d("after viewmodel register user", "called")
+                            } else if (isLogin && isAdmin) {
+                                // admin login
+                                Log.d("register_admin", "registering admin")
+                                viewModel.viewModelScope.launch {
+                                    viewModel.signInAdmin()
+                                }
+                                Log.d("after viewmodel register user", "called")
+                            } else if (!isLogin && !isAdmin) {
+                                //register user
+                                Log.d("register_admin", "registering admin")
+                                viewModel.viewModelScope.launch {
+                                    viewModel.registerUser()
+                                }
+                                Log.d("after viewmodel register user", "called")
+                            } else if (!isLogin && isAdmin) {
+                                // register admin
+                                Log.d("register_admin", "registering admin")
+                                viewModel.viewModelScope.launch {
+                                    viewModel.registerAdmin()
+                                }
+                                Log.d("after viewmodel register user", "called")
+                            }
+
+
+
+
+                            if (isSuccess && !isAdmin) {
+                                // use nav controller to go to next screen and remove that from backstack
+
+                                navController.navigate("successAnimation/${isSuccess}")
+
+                            } else if (isSuccess && isAdmin) {
+                                navController.navigate("successAnimation/${isSuccess}")
+                            } else {
+                                navController.navigate("successAnimation/${isSuccess}")
+                            }
+
+                        }
                         .size(height = 55.dp, width = 200.dp),
                         shape = RoundedCornerShape(20.dp),
                         elevation = CardDefaults.cardElevation(
@@ -545,7 +518,11 @@ fun login_page(
                             color = TextOnBackgroundDark
                         )
                         Button(
-                            onClick = { onLastBtnClick },
+                            onClick = {
+                                if (isLogin) navController.navigate("loginOrSignUp/${isAdmin}/${!isLogin}") else navController.navigate(
+                                    "loginOrSignUp/${isAdmin}/${!isLogin}"
+                                )
+                            },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                         ) {
                             Text(
