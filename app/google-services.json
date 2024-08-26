@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1069065795894",
+    "project_id": "poll-creator-blockchain",
+    "storage_bucket": "poll-creator-blockchain.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1069065795894:android:2bdb18effe9e3dcfdd5b97",
+        "android_client_info": {
+          "package_name": "com.example.pollcreator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfhpLOXnz9GZPDKw4OJuQDqzuTrdQpBi4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

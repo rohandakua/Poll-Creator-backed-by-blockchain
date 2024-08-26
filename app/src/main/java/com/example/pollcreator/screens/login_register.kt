@@ -42,13 +42,12 @@ import kotlinx.coroutines.flow.callbackFlow
 
 @Preview
 @Composable
-fun two_centre_button(
+fun login_register(
     modifier: Modifier = Modifier,
-    btn1text: String = "USER",
-    btn2text: String = "ADMIN",
-    btn1Click: () -> Unit = {},
-    btn2Click: () -> Unit = {},
-    navController: NavController = rememberNavController()
+    btn1text: String = "Login",
+    btn2text: String = "Register",
+    navController: NavController = rememberNavController(),
+    isAdmin : Boolean=false
 ) {
     Box(
         modifier = modifier
@@ -71,7 +70,7 @@ fun two_centre_button(
                 )
             Spacer(modifier = Modifier.size(100.dp))
             Card(modifier = Modifier
-                .clickable { navController.navigate("login_register/${false}") }   // isAdmin
+                .clickable { navController.navigate("loginOrSignUp/${isAdmin}/${true}") }
                 .size(height = 60.dp, width = 250.dp),
                 shape = RoundedCornerShape(20.dp),
                 elevation = CardDefaults.cardElevation(pressedElevation = 20.dp, defaultElevation = 30.dp),
@@ -93,7 +92,7 @@ fun two_centre_button(
             Spacer(modifier = Modifier.size(30.dp))
 
             Card(modifier = Modifier
-                .clickable { navController.navigate("login_register/${true}") }      // isAdmin value is true
+                .clickable { navController.navigate("loginOrSignUp/${isAdmin}/${false}") }
                 .size(height = 60.dp, width = 250.dp),
                 shape = RoundedCornerShape(20.dp),
                 elevation = CardDefaults.cardElevation(pressedElevation = 20.dp, defaultElevation = 30.dp),

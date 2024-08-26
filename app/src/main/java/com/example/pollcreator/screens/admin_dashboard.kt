@@ -39,6 +39,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBorderDark
@@ -52,7 +54,8 @@ import com.example.pollcreator.ui.theme.TextOnBackgroundLight
 public fun admin_dashboard(
     modifier: Modifier = Modifier,
     onPrevVoteButton: () -> Unit = {},
-    onProfileButton: () -> Unit = {}
+    onProfileButton: () -> Unit = {},
+    navController: NavController = rememberNavController()
 ) {
     Box(
         modifier = modifier
@@ -289,7 +292,8 @@ public fun admin_dashboard(
                     Modifier
                         .padding(end = 30.dp)
                         .size(50.dp)
-                        .clickable { onProfileButton }
+                        .clickable { navController.navigate("profile") }
+
 
                 )
 
