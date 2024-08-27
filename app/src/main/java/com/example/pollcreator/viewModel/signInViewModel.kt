@@ -1,5 +1,6 @@
 package com.example.pollcreator.viewModel
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -8,6 +9,11 @@ import androidx.lifecycle.ViewModel
 import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.dataclass.UserOrAdmin
 import com.example.pollcreator.onlineStorage.fireBaseDataModel
+import com.example.pollcreator.screens.MainActivity
+import com.firebase.ui.auth.AuthUI.getApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
 class signInViewModel() : ViewModel() {
     val fireBaseDataModel: fireBaseDataModel = allSingeltonObjects.fireBaseDataModel
@@ -23,6 +29,7 @@ class signInViewModel() : ViewModel() {
     private var _panNo = mutableStateOf<String?>(null)
     private var _isSuccess = mutableStateOf(true)
     private var _noOfPollCreated = mutableStateOf(0)
+    private var _toastText = mutableStateOf<String?>(null)
 
     // Public immutable state
     val isLogin: State<Boolean> get() = _isLogin
@@ -36,9 +43,15 @@ class signInViewModel() : ViewModel() {
     val isSuccess: State<Boolean> get() = _isSuccess
     val noOfPollCreated: State<Int> get() = _noOfPollCreated
 
+    val toastText: State<String?> get() = _toastText
+
     // Getter and Setter functions
 
     // Getter functions are already provided through `val` properties
+
+    fun setToastText(value: String?) {
+        _toastText.value = value?: null
+    }
 
     fun setIsLogin(value: Boolean) {
         _isLogin.value = value
@@ -92,6 +105,20 @@ class signInViewModel() : ViewModel() {
         _panNo.value=null
     }
 
+    fun saveDataInSharedPreferences(context: Context){
+        val sharedPreferences =context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putLong("aadharNo",_aadharNo.value.toLong()).apply()
+        sharedPreferences.edit().putString("password",_password.value).apply()
+        sharedPreferences.edit().putString("pan",_panNo.value).apply()
+        sharedPreferences.edit().putBoolean("isadmin",_isAdmin.value).apply()
+
+
+        makeAllFieldsNull()
+         // adding all the information for login
+
+
+    }
+
 
 
 
@@ -110,8 +137,9 @@ class signInViewModel() : ViewModel() {
             )
         ))
 
+        allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
+
         Log.d("from ViewModel", "${aadharNo.value}  ${password.value}  ")
-        makeAllFieldsNull()
 
     }
 
@@ -127,9 +155,8 @@ class signInViewModel() : ViewModel() {
                 pan = null
             )
         ))
+        allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
         Log.d("from ViewModel", "${_aadharNo.value}  ${_password.value}  ")
-
-        makeAllFieldsNull()
 
     }
 
@@ -139,8 +166,8 @@ class signInViewModel() : ViewModel() {
             password = _password.value,
             pan = _panNo.value?:null
         ))
+        allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
         Log.d("from ViewModel", "${_aadharNo.value}  ${_password.value}  ")
-        makeAllFieldsNull()
 
     }
 
@@ -149,8 +176,8 @@ class signInViewModel() : ViewModel() {
             aadharNo = _aadharNo.value.toLongOrNull()?: 0,
             password = _password.value
         ))
+        allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
         Log.d("from ViewModel", "${_aadharNo.value}  ${_password.value}  ")
-        makeAllFieldsNull()
 
     }
 

@@ -1,6 +1,7 @@
 package com.example.pollcreator.screens
 
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,10 +17,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,9 +50,17 @@ public fun success_screen(
     btn1onClick: () -> Unit = {},
     navController: NavController = rememberNavController(),
 ) {
-
+    val localContext = LocalContext.current
     val success_composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.success_animation))
     val fail_composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.fail_animation))
+    val toastText by allSingeltonObjects.signInViewModel.toastText
+    LaunchedEffect(toastText) {
+        toastText?.let {
+            Toast.makeText(localContext, toastText,Toast.LENGTH_SHORT).show()
+            allSingeltonObjects.signInViewModel.setToastText(null)
+        }
+
+    }
 
     val successanimationState =
         animateLottieCompositionAsState(composition = success_composition, iterations = 1)
@@ -87,17 +98,17 @@ public fun success_screen(
                     if (allSingeltonObjects.signInViewModel.isSuccess.value) {
                         // success , now going to the dashboard
                         if (allSingeltonObjects.signInViewModel.isAdmin.value) {
-                            navController.navigate("adminDashBoard"){
+                            navController.navigate("adminDashBoard") {
                                 popUpTo("userOrAdmin") { inclusive = true }
                             }
-                        }else{
-                            navController.navigate("userDashBoard"){
+                        } else {
+                            navController.navigate("userDashBoard") {
                                 popUpTo("userOrAdmin") { inclusive = true }
                             }
                         }
                     }
 
-                    if(allSingeltonObjects.signInViewModel.isSuccess.value==false){
+                    if (allSingeltonObjects.signInViewModel.isSuccess.value == false) {
                         navController.navigate("userOrAdmin")
                     }
                 }

@@ -23,12 +23,16 @@ class MainActivity : ComponentActivity() {
 
 
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
         setContent {
             PollCreatorBackedByBlockchainTheme {
+                val sharedPreferences = this.getSharedPreferences("SignIn", MODE_PRIVATE)
+
                 Box(modifier = Modifier
                     .fillMaxSize()
                     .background(MainBackground)){

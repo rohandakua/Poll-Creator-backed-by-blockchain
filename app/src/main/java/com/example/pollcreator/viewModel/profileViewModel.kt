@@ -2,6 +2,7 @@ package com.example.pollcreator.viewModel
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -11,13 +12,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.dataclass.UserOrAdmin
 import com.example.pollcreator.onlineStorage.fireBaseDataModel
 import com.example.pollcreator.screens.MainActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class profileViewModel : ViewModel() {
 
-//    val sharedPreferences = MainActivity().getSharedPreferences("user_ref",Context.MODE_PRIVATE)
+
     // Private mutable state
     private var _isLogin = mutableStateOf(true)
     private var _isAdmin = mutableStateOf(true)
@@ -98,60 +103,71 @@ class profileViewModel : ViewModel() {
         _panNo.value=null
     }
 
-    suspend fun getUserDetails(){
-        viewModelScope.launch {
-
-            if(_aadharNo.value!=null){
-                _isLoading.value = true
-                val userInfoFromFirebase = allSingeltonObjects.fireBaseDataModel.getUserDetails(_aadharNo.value.toLong() )
-                setName(userInfoFromFirebase!!._name)
-                setIsAdmin(userInfoFromFirebase!!.adminOrNot?: false)
-                setAge(userInfoFromFirebase!!._age)
-                setGender(userInfoFromFirebase!!._gender.toString())
-                setPanNo(userInfoFromFirebase!!.pan)
-                setNoOfPollCreated(userInfoFromFirebase!!.noOfPollCreated?: 0)
-                setPassword(userInfoFromFirebase!!._password)
-                setAadharNo(userInfoFromFirebase!!._aadharNo)
-                Log.d("from getUserDetails" , "reached is loading = false")
-                _isLoading.value=false
-                Log.d("from getUserDetails" , "passed is loading = false")
-
+    fun getUserDataFromSharedPrefernce(context: Context){
+        val sharedPreferences = context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
+        val aadharNoget = sharedPreferences.getLong("aadharNo",0L)
+        val panNoget = sharedPreferences.getString("pan","")
+        val passwordget = sharedPreferences.getString("password","")
+        val isAdminget = sharedPreferences.getBoolean("isadmin",false)
+        if(isAdminget){
+            CoroutineScope(Dispatchers.IO).launch {
+                allSingeltonObjects.signInViewModel.setAadharNo(aadharNoget)
+                allSingeltonObjects.signInViewModel.setPassword(passwordget?: "")
+                allSingeltonObjects.signInViewModel.setPanNo(panNoget)
+                allSingeltonObjects.profileViewModel.setIsAdmin(true)
+                allSingeltonObjects.signInViewModel.signInAdmin()
             }
-//            else{
-//                _isLoading.value = true
-//                setAadharNo(sharedPreferences.getString("aadharNo","")!!.toLong())
-//                setPassword(sharedPreferences.getString("password","")!!)
-//                setIsAdmin(sharedPreferences.getString("isAdmin","")!!.toBoolean())
-//                setPanNo(sharedPreferences.getString("panNo",""))
-//
-//                if(_isAdmin.value){
-//                    allSingeltonObjects.signInViewModel.setAadharNo(_aadharNo.value.toLong())
-//                    allSingeltonObjects.signInViewModel.setPassword(_password.value)
-//                    allSingeltonObjects.signInViewModel.setPanNo(_panNo.value)
-//                    allSingeltonObjects.signInViewModel.signInAdmin()
-//                    getCopyOfDetailsFromSignIn()
-//                }else{
-//                    allSingeltonObjects.signInViewModel.setAadharNo(_aadharNo.value.toLong())
-//                    allSingeltonObjects.signInViewModel.setPassword(_password.value)
-//                    allSingeltonObjects.signInViewModel.signInUser()
-//                    getCopyOfDetailsFromSignIn()
-//                }
-//
-//
-//                _isLoading.value = false
-//
-//            }
+        }else{
+            CoroutineScope(Dispatchers.IO).launch {
+            allSingeltonObjects.signInViewModel.setAadharNo(aadharNoget)
+            allSingeltonObjects.signInViewModel.setPassword(passwordget?: "")
+                allSingeltonObjects.profileViewModel.setIsAdmin(false)
+            allSingeltonObjects.signInViewModel.signInUser()
+                }
+
+        }
+
+    }
+
+    suspend fun getUserDetails(context: Context){
+
+
+        viewModelScope.launch {
+                val sharedPreferences=context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
+                getUserDataFromSharedPrefernce(context)
+                Log.d("reached sharefPref section in get data","")
+                _isLoading.value = true
+                setAadharNo(sharedPreferences.getLong("aadharNo",0L)!!)
+                setPassword(sharedPreferences.getString("password","")!!)
+                setIsAdmin(sharedPreferences.getBoolean("isadmin",false)!!)
+                setPanNo(sharedPreferences.getString("pan",""))
+                if(_isAdmin.value){
+                    allSingeltonObjects.signInViewModel.setAadharNo(_aadharNo.value.toLong())
+                    allSingeltonObjects.signInViewModel.setPassword(_password.value)
+                    allSingeltonObjects.signInViewModel.setPanNo(_panNo.value)
+                    allSingeltonObjects.signInViewModel.signInAdmin()
+                }else{
+                    allSingeltonObjects.signInViewModel.setAadharNo(_aadharNo.value.toLong())
+                    allSingeltonObjects.signInViewModel.setPassword(_password.value)
+                    allSingeltonObjects.signInViewModel.signInUser()
+                }
+                allSingeltonObjects.signInViewModel.getUserDetails()
+                getCopyOfDetailsFromSignIn()
+                _isLoading.value=false
+                Log.d("reached sharefPref section in get data","")
         }
     }
     fun getCopyOfDetailsFromSignIn(){
         _aadharNo.value = allSingeltonObjects.signInViewModel.aadharNo.value
         _password.value = allSingeltonObjects.signInViewModel.password.value
         _panNo.value = allSingeltonObjects.signInViewModel.panNo.value
+        _isAdmin.value = allSingeltonObjects.signInViewModel.isAdmin.value
+        _age.value = allSingeltonObjects.signInViewModel.age.value
+        _gender.value = allSingeltonObjects.signInViewModel.gender.value
+        _name.value = allSingeltonObjects.signInViewModel.name.value
+        _noOfPollCreated.value = allSingeltonObjects.signInViewModel.noOfPollCreated.value
+
     }
 
-    suspend fun logout(){
-        allSingeltonObjects.fireBaseDataModel.logout()
-        makeAllFieldsNull()
 
-    }
 }

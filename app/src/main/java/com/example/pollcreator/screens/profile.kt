@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,9 +63,9 @@ public fun profile(
     navController: NavController = rememberNavController()
 
 ) {
-
-    LaunchedEffect(allSingeltonObjects.profileViewModel.isLoading.value) {
-        allSingeltonObjects.profileViewModel.getUserDetails()
+    val localContext = LocalContext.current
+    LaunchedEffect(true) {
+        allSingeltonObjects.profileViewModel.getUserDetails(localContext.applicationContext)
     }
     val s  = remember {
         mutableStateOf("Loading .....")
@@ -77,6 +78,7 @@ public fun profile(
             .fillMaxSize()
             .background(MainBackground)
     ) {
+
         if (allSingeltonObjects.profileViewModel.isLoading.value) {
             Column (Modifier.fillMaxSize() , horizontalAlignment = Alignment.CenterHorizontally , verticalArrangement = Arrangement.Center){
 

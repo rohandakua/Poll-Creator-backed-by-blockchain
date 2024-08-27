@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -94,6 +95,8 @@ fun login_page(
     val gender by viewModel.gender
     val name by viewModel.name
     val panNo by viewModel.panNo
+
+    val localContext = LocalContext.current
 
 
     Box(
@@ -434,7 +437,7 @@ fun login_page(
 
                     )
                     Spacer(modifier = Modifier.size(40.dp))
-
+                    val localContext = LocalContext.current
                     //
                     Card(modifier = Modifier
                         .clickable {
@@ -448,7 +451,9 @@ fun login_page(
                                 // user login
                                 Log.d("signIn_admin", "registering admin")
                                 viewModel.viewModelScope.launch {
+                                    allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
                                     viewModel.signInUser()
+                                    viewModel.saveDataInSharedPreferences(context = localContext)
                                 }
 
                                 Log.d("after viewmodel register user", "called")
@@ -456,21 +461,27 @@ fun login_page(
                                 // admin login
                                 Log.d("register_admin", "registering admin")
                                 viewModel.viewModelScope.launch {
+                                    allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
                                     viewModel.signInAdmin()
+                                    viewModel.saveDataInSharedPreferences(context = localContext)
                                 }
                                 Log.d("after viewmodel register user", "called")
                             } else if (!isLogin && !isAdmin) {
                                 //register user
                                 Log.d("register_admin", "registering admin")
                                 viewModel.viewModelScope.launch {
+                                    allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
                                     viewModel.registerUser()
+                                    viewModel.saveDataInSharedPreferences(context = localContext)
                                 }
                                 Log.d("after viewmodel register user", "called")
                             } else if (!isLogin && isAdmin) {
                                 // register admin
                                 Log.d("register_admin", "registering admin")
                                 viewModel.viewModelScope.launch {
+                                    allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
                                     viewModel.registerAdmin()
+                                    viewModel.saveDataInSharedPreferences(context = localContext)
                                 }
                                 Log.d("after viewmodel register user", "called")
                             }
