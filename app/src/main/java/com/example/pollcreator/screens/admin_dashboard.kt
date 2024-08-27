@@ -27,12 +27,15 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.DisableContentCapture
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,12 +45,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
+import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBorderDark
 import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
@@ -57,6 +64,10 @@ public fun admin_dashboard(
     onProfileButton: () -> Unit = {},
     navController: NavController = rememberNavController()
 ) {
+
+
+
+
     Box(
         modifier = modifier
             .fillMaxSize()
