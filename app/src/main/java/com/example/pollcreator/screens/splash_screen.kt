@@ -95,7 +95,11 @@ public fun splash_screen(
         delay(1500)
         if (viewModel.checkCurrentSignIn()){
             navController.popBackStack()
-            if(viewModel.isAdmin.value){
+            //getting info from savedpreferences
+            val sharedPreferences = navController.context.getSharedPreferences("LoginData", android.content.Context.MODE_PRIVATE)
+
+            if(sharedPreferences.getBoolean("isadmin",false)){
+
                 navController.navigate("adminDashBoard")
             }else{
                 navController.navigate("userDashBoard")

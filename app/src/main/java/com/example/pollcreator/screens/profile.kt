@@ -1,5 +1,6 @@
 package com.example.pollcreator.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.allSingeltonObjects
@@ -49,8 +51,6 @@ import com.google.firebase.database.core.Context
 import kotlinx.coroutines.delay
 
 
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
@@ -63,11 +63,30 @@ public fun profile(
     navController: NavController = rememberNavController()
 
 ) {
+    val currentContext = LocalContext.current
+    val toastText by allSingeltonObjects.signInViewModel.toastTextProfile
+    LaunchedEffect(toastText) {
+        toastText?.let {
+            Toast.makeText(currentContext, toastText, Toast.LENGTH_SHORT).show()
+            allSingeltonObjects.signInViewModel.setToastTextProfile(null)
+        }
+
+    }
+
+    val toastTextChangePassword by allSingeltonObjects.profileViewModel.toastText
+    LaunchedEffect(toastTextChangePassword) {
+        toastTextChangePassword?.let {
+            Toast.makeText(currentContext, toastTextChangePassword, Toast.LENGTH_SHORT).show()
+            allSingeltonObjects.profileViewModel.setToastText(null)
+        }
+
+    }
+
     val localContext = LocalContext.current
     LaunchedEffect(true) {
         allSingeltonObjects.profileViewModel.getUserDetails(localContext.applicationContext)
     }
-    val s  = remember {
+    val s = remember {
         mutableStateOf("Loading .....")
     }
 
@@ -80,7 +99,11 @@ public fun profile(
     ) {
 
         if (allSingeltonObjects.profileViewModel.isLoading.value) {
-            Column (Modifier.fillMaxSize() , horizontalAlignment = Alignment.CenterHorizontally , verticalArrangement = Arrangement.Center){
+            Column(
+                Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
 
                 Text(text = s.value)
 
@@ -295,33 +318,34 @@ public fun profile(
                     ) {
 
 
-                        if (allSingeltonObjects.profileViewModel.isAdmin.value) {
-                            Card(modifier = Modifier
-                                .clickable { onBtn2Click }
-                                .size(height = 55.dp, width = 300.dp),
-                                shape = RoundedCornerShape(20.dp),
-                                elevation = CardDefaults.cardElevation(
-                                    pressedElevation = 20.dp, defaultElevation = 30.dp
-                                ),
-                                colors = CardDefaults.cardColors(ButtonBackground)) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = textOnBtn2,
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 2.sp,
-                                        color = Color.White,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-
+                        Card(modifier = Modifier
+                            .clickable {
+                                navController.navigate("changeRole")
                             }
+                            .size(height = 55.dp, width = 300.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            elevation = CardDefaults.cardElevation(
+                                pressedElevation = 20.dp, defaultElevation = 30.dp
+                            ),
+                            colors = CardDefaults.cardColors(ButtonBackground)) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = if(allSingeltonObjects.profileViewModel.isAdmin.value) "Quit being Admin" else "Become Admin",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 2.sp,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+
+
                         }
                         Card(modifier = Modifier
-                            .clickable { onBtn1Click }
+                            .clickable { navController.navigate("changePassword") }
                             .size(height = 55.dp, width = 300.dp),
                             shape = RoundedCornerShape(20.dp),
                             elevation = CardDefaults.cardElevation(
@@ -347,7 +371,8 @@ public fun profile(
                             .clickable {
                                 allSingeltonObjects.signInViewModel.makeAllFieldsNull()
                                 allSingeltonObjects.profileViewModel.makeAllFieldsNull()
-                                navController.navigate("UserOrAdmin") }
+                                navController.navigate("UserOrAdmin")
+                            }
                             .size(height = 55.dp, width = 300.dp),
                             shape = RoundedCornerShape(20.dp),
                             elevation = CardDefaults.cardElevation(

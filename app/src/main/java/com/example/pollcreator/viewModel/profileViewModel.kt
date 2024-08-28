@@ -15,6 +15,8 @@ import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.dataclass.UserOrAdmin
 import com.example.pollcreator.onlineStorage.fireBaseDataModel
 import com.example.pollcreator.screens.MainActivity
+import com.google.android.gms.tasks.Task
+import com.google.firebase.database.DataSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -34,6 +36,7 @@ class profileViewModel : ViewModel() {
     private var _panNo = mutableStateOf<String?>(null)
     private var _isSuccess = mutableStateOf(true)
     private var _noOfPollCreated = mutableStateOf(0)
+    private var _toastText = mutableStateOf<String?>(null)
 
     private var _isLoading = mutableStateOf(true)
     val isLoading: State<Boolean> get() = _isLoading
@@ -51,9 +54,15 @@ class profileViewModel : ViewModel() {
     val isSuccess: State<Boolean> get() = _isSuccess
     val noOfPollCreated: State<Int> get() = _noOfPollCreated
 
+    val toastText: State<String?> get() = _toastText
+
     // Getter and Setter functions
 
     // Getter functions are already provided through `val` properties
+
+    fun setToastText(value: String?) {
+        _toastText.value = value?: null
+    }
 
     fun setIsLogin(value: Boolean) {
         _isLogin.value = value
@@ -167,6 +176,67 @@ class profileViewModel : ViewModel() {
         _name.value = allSingeltonObjects.signInViewModel.name.value
         _noOfPollCreated.value = allSingeltonObjects.signInViewModel.noOfPollCreated.value
 
+    }
+    suspend fun changePassword(newpassword: String){
+
+        Log.d("from change password","${allSingeltonObjects.signInViewModel.aadharNo.value}")
+        val user = allSingeltonObjects.signInViewModel.checkCurrentUser()
+        user?.let {
+            it.updatePassword(newpassword).addOnCompleteListener{task ->
+                if(task.isSuccessful){
+                    setIsSuccess(true)
+                    setToastText("Password Changed Successfully !!!")
+                    // change in the realtime db
+                    allSingeltonObjects.referenceToUsers.child(allSingeltonObjects.profileViewModel.aadharNo.value).child("_password").setValue(newpassword)
+
+                }else{
+                    setIsSuccess(false)
+                    setToastText("Password Not Changed !!!")
+
+                }
+
+            }
+
+
+        }
+    }
+
+
+    suspend fun changeToAdmin(pan : String,context: Context){
+        // changing the adminOrNot to true and also adding pan no then reloading the admin dashboard screen
+        setPanNo(pan)
+        setIsAdmin(true)
+        allSingeltonObjects.referenceToUsers.child(allSingeltonObjects.profileViewModel.aadharNo.value).child("pan").setValue(pan)
+        allSingeltonObjects.referenceToUsers.child(allSingeltonObjects.profileViewModel.aadharNo.value).child("adminOrNot").setValue(true)
+        val savedPreferences = context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
+        savedPreferences.edit().putBoolean("isadmin",true).apply()
+        allSingeltonObjects.signInViewModel.setIsAdmin(true)
+        allSingeltonObjects.signInViewModel.setPanNo(pan)
+        allSingeltonObjects.signInViewModel.signInAdmin()
+
+
+
+    }
+
+    suspend fun changeToUser(context: Context){
+        setPanNo(null)
+        setIsAdmin(false)
+        allSingeltonObjects.referenceToUsers.child(allSingeltonObjects.profileViewModel.aadharNo.value).child("pan").setValue(null)
+        allSingeltonObjects.referenceToUsers.child(allSingeltonObjects.profileViewModel.aadharNo.value).child("adminOrNot").setValue(false)
+        val savedPreferences = context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
+        savedPreferences.edit().putBoolean("isadmin",false).apply()
+        allSingeltonObjects.signInViewModel.setIsAdmin(false)
+        allSingeltonObjects.signInViewModel.setPanNo(null)
+        allSingeltonObjects.signInViewModel.signInUser()
+
+    }
+    fun getCurrentPassword() : Task<DataSnapshot> {
+        var storedPassword =""
+
+        val s=allSingeltonObjects.referenceToUsers.child(_aadharNo.value).child("_password").get()
+
+
+        return s
     }
 
 

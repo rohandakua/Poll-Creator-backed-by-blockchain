@@ -25,6 +25,12 @@ class fireBaseDataModel : signUpRepository {
         auth = Firebase.auth
     }  // this should be called before set function
 
+    fun getUser(): FirebaseUser? {
+        val user = auth.currentUser
+        Log.d("firebase", user.toString())
+        return user
+    }
+
 
     override suspend fun registerUser(user: UserOrAdmin): Boolean {
         var emailOfUser = "thisis" + user._aadharNo.toString() + "@fakeaadhar.com"
@@ -100,12 +106,12 @@ class fireBaseDataModel : signUpRepository {
     }
 
     override suspend fun checkCurrentUser(): FirebaseUser? {
+        getAuth()
         return auth.currentUser
     }
 
     override suspend fun logout() {
         auth.signOut()
-        allSingeltonObjects.signInViewModel.setToastText("Logged Out Successfully !!!")
 
     }
 

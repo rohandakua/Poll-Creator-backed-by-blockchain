@@ -1,5 +1,7 @@
 package com.example.pollcreator.screens
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -50,13 +54,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
+import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBackgroundLight
 import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,7 +76,8 @@ public fun admin_registration  (
     modifier: Modifier = Modifier,
     onBtn1Click: () -> Unit = {},
     onBtn1FailClick: () -> Unit = {},
-    currentPassword : String = ""
+    currentPassword : String = "",
+    navController: NavController= rememberNavController()
 
 ) {
 
@@ -85,28 +96,30 @@ public fun admin_registration  (
             .fillMaxSize()
             .background(MainBackground)
     ) {
-        Column {
+        Column (modifier=Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally){
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(14.dp), verticalArrangement = Arrangement.SpaceEvenly
+                    .padding(14.dp), verticalArrangement = Arrangement.SpaceBetween
+                , horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
+                Box(modifier = Modifier.size(15.dp))
                 Text(
                     text = "Enter your additional details",
-                    fontSize = 38.sp,
+                    fontSize = 32.sp,
                     color = TextOnBackgroundDark,
                     fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier.padding(top = 20.dp)
                 )
-                Spacer(modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.size(10.dp))
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = CardBackgroundLight),
                     modifier = Modifier
                         .fillMaxWidth(.95f)
-                        .fillMaxHeight(.4f),
+                        .fillMaxHeight(.3f),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 ) {
                     Column(
@@ -120,17 +133,17 @@ public fun admin_registration  (
                         TextField(
                             value = pan,
                             onValueChange = { pan = it },
-                            modifier = Modifier.fillMaxWidth().padding(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
                             shape = RoundedCornerShape(25.dp),
                             colors = TextFieldDefaults.textFieldColors(
                                 containerColor = TextFieldBackground,
                                 focusedTextColor = TextOnBackgroundDark,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
-                                cursorColor = TextOnBackgroundLight,
                                 unfocusedTextColor = TextOnBackgroundDark
                             ),
-                            singleLine = true,
 
                             textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold),
                             leadingIcon = {
@@ -160,14 +173,15 @@ public fun admin_registration  (
                         TextField(
                             value = password,
                             onValueChange = { password = it },
-                            modifier = Modifier.fillMaxWidth().padding(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
                             shape = RoundedCornerShape(25.dp),
                             colors = TextFieldDefaults.textFieldColors(
                                 containerColor = TextFieldBackground,
                                 focusedTextColor = TextOnBackgroundDark,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
-                                cursorColor = TextOnBackgroundLight,
                                 unfocusedTextColor = TextOnBackgroundDark
                             ),
                             singleLine = true,
@@ -229,9 +243,65 @@ public fun admin_registration  (
                     .fillMaxWidth()
                     .fillMaxHeight(.5f),verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
 
+                    val context= LocalContext.current
 
                     Card(modifier = Modifier
-                        .clickable { if (password.equals(currentPassword))onBtn1Click else onBtn1FailClick }
+                        .clickable {  // if admin then give confirm will perform quit admin else vice versa
+                            if (allSingeltonObjects.profileViewModel.isAdmin.value) {
+                                // making user
+                                Log.d("the password in profileViewModel","${password}  ${allSingeltonObjects.signInViewModel.password.value}")
+                                if (
+                                    password == (allSingeltonObjects.signInViewModel.password.value) &&
+                                    pan.length==10 &&
+                                    pan == (allSingeltonObjects.signInViewModel.panNo.value)
+                                ) {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        allSingeltonObjects.profileViewModel.changeToUser(context)
+                                        allSingeltonObjects.profileViewModel.setToastText("You are now an user")
+
+
+                                    }
+                                        navController.navigate("userDashBoard")
+
+                                } else {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "The passwords do not match",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+
+                                }
+
+                            } else {
+                                // making admin
+                                Log.d("the password in profileViewModel","${password}  ${allSingeltonObjects.profileViewModel.password}")
+                                if (
+                                    password == (allSingeltonObjects.signInViewModel.password.value) &&
+                                    pan.length==10
+                                    ) {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        allSingeltonObjects.profileViewModel.changeToAdmin(
+                                            pan,
+                                            context
+                                        )
+                                        allSingeltonObjects.profileViewModel.setToastText("You are now an admin")
+                                    }
+                                        navController.navigate("adminDashBoard")
+
+                                } else {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "The passwords do not match",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+
+                                }
+                            }
+                        }
                         .size(height = 55.dp, width = 300.dp),
                         shape = RoundedCornerShape(20.dp),
                         elevation = CardDefaults.cardElevation(
