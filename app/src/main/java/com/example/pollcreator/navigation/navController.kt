@@ -6,6 +6,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.pollcreator.screens.admin_dashboard
+import com.example.pollcreator.screens.admin_registration
+import com.example.pollcreator.screens.change_password_screen
 import com.example.pollcreator.screens.userDashboard
 import com.example.pollcreator.screens.login_page
 import com.example.pollcreator.screens.login_register
@@ -52,7 +55,7 @@ fun navController(modifier: Modifier = Modifier,viewModel: signInViewModel) {
         }
 
         composable(route = "adminDashBoard"){
-            userDashboard(navController=navController)
+            admin_dashboard(navController=navController)
         }
 
 
@@ -65,6 +68,14 @@ fun navController(modifier: Modifier = Modifier,viewModel: signInViewModel) {
 
         composable(route="profile"){
             profile( navController = navController)
+        }
+
+        composable(route="changePassword"){
+            change_password_screen(navController=navController)
+        }
+
+        composable(route="changeRole"){
+            admin_registration(navController=navController)
         }
 
 

@@ -530,6 +530,7 @@ fun login_page(
                         )
                         Button(
                             onClick = {
+                                navController.popBackStack()
                                 if (isLogin) navController.navigate("loginOrSignUp/${isAdmin}/${!isLogin}") else navController.navigate(
                                     "loginOrSignUp/${isAdmin}/${!isLogin}"
                                 )

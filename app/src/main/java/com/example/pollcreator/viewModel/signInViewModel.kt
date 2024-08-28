@@ -11,6 +11,7 @@ import com.example.pollcreator.dataclass.UserOrAdmin
 import com.example.pollcreator.onlineStorage.fireBaseDataModel
 import com.example.pollcreator.screens.MainActivity
 import com.firebase.ui.auth.AuthUI.getApplicationContext
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
@@ -30,6 +31,7 @@ class signInViewModel() : ViewModel() {
     private var _isSuccess = mutableStateOf(true)
     private var _noOfPollCreated = mutableStateOf(0)
     private var _toastText = mutableStateOf<String?>(null)
+    private var _toastTextProfile = mutableStateOf<String?>(null)
 
     // Public immutable state
     val isLogin: State<Boolean> get() = _isLogin
@@ -44,6 +46,7 @@ class signInViewModel() : ViewModel() {
     val noOfPollCreated: State<Int> get() = _noOfPollCreated
 
     val toastText: State<String?> get() = _toastText
+    val toastTextProfile: State<String?> get() = _toastTextProfile
 
     // Getter and Setter functions
 
@@ -52,7 +55,9 @@ class signInViewModel() : ViewModel() {
     fun setToastText(value: String?) {
         _toastText.value = value?: null
     }
-
+    fun setToastTextProfile(value: String?) {
+        _toastTextProfile.value = value?: null
+    }
     fun setIsLogin(value: Boolean) {
         _isLogin.value = value
     }
@@ -117,6 +122,10 @@ class signInViewModel() : ViewModel() {
          // adding all the information for login
 
 
+    }
+
+    fun checkCurrentUser():FirebaseUser?{
+        return fireBaseDataModel.getUser()
     }
 
 
@@ -190,7 +199,11 @@ class signInViewModel() : ViewModel() {
     }
 
     suspend fun logout(){
+
         fireBaseDataModel.logout()
+
+        allSingeltonObjects.signInViewModel.setToastTextProfile("Logged Out Successfully !!!")
+
         makeAllFieldsNull()
     }
 
