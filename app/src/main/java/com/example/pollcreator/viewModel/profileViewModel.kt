@@ -230,14 +230,6 @@ class profileViewModel : ViewModel() {
         allSingeltonObjects.signInViewModel.signInUser()
 
     }
-    fun getCurrentPassword() : Task<DataSnapshot> {
-        var storedPassword =""
-
-        val s=allSingeltonObjects.referenceToUsers.child(_aadharNo.value).child("_password").get()
-
-
-        return s
-    }
 
 
 }

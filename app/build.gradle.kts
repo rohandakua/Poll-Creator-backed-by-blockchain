@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.google.gms.google.services)
 
 
+
 }
 
 android {
@@ -83,6 +84,19 @@ dependencies {
 
     implementation ("com.airbnb.android:lottie-compose:6.0.0")
     implementation(libs.androidx.navigation.compose)
+
+    //retrofit
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+
+    // metamask
+    implementation ("io.metamask.androidsdk:metamask-android-sdk:0.2.1")
+
+    implementation ("com.github.WalletConnect:kotlin-walletconnect-lib:0.9.8")
+
+    // web3j
+    implementation ("org.web3j:core:4.11.0-android")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
