@@ -1,6 +1,6 @@
 package com.example.pollcreator.dataclass
 
-data class Participant(
+data class Candidate(
     val _pollId: Long,
     val _aadharNo: Long,
     val _age: Int,

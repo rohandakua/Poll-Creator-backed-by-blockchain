@@ -268,6 +268,7 @@ public fun change_password_screen   (
                     //
 
                 }
+                val localContext = LocalContext.current
 
                 Column(modifier= Modifier
                     .fillMaxWidth()
@@ -276,23 +277,27 @@ public fun change_password_screen   (
 
                     Card(modifier = Modifier
                         .clickable {
-                            if (newPassword.equals(newRetypePassword)) {
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    allSingeltonObjects.profileViewModel.changePassword(newPassword)
+                            if(newRetypePassword=="" || newPassword ==""){
+                                Toast.makeText(localContext,"Fill all the fields !!!",Toast.LENGTH_SHORT).show()
+                            }else{
+                                if (newPassword.equals(newRetypePassword)) {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        allSingeltonObjects.profileViewModel.changePassword(newPassword)
 
-                                }
+                                    }
                                     navController.popBackStack()
 
-                            } else {
-                                Toast
-                                    .makeText(
-                                        currentContext,
-                                        "Password Mismatch",
-                                        Toast.LENGTH_SHORT
-                                    )
-                                    .show()
-                                newRetypePassword = ""
+                                } else {
+                                    Toast
+                                        .makeText(
+                                            currentContext,
+                                            "Password Mismatch",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                    newRetypePassword = ""
 
+                                }
                             }
                         }
                         .size(height = 55.dp, width = 300.dp),

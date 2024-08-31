@@ -96,7 +96,6 @@ public fun admin_registration  (
             .fillMaxSize()
             .background(MainBackground)
     ) {
-        Column (modifier=Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally){
 
             Column(
                 modifier = Modifier
@@ -108,12 +107,11 @@ public fun admin_registration  (
                 Box(modifier = Modifier.size(15.dp))
                 Text(
                     text = "Enter your additional details",
-                    fontSize = 32.sp,
+                    fontSize = 26.sp,
                     color = TextOnBackgroundDark,
                     fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(top = 20.dp)
+                    modifier = Modifier.fillMaxWidth().fillMaxWidth(.2f)
                 )
-                Spacer(modifier = Modifier.size(10.dp))
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = CardBackgroundLight),
@@ -241,64 +239,70 @@ public fun admin_registration  (
 
                 Column(modifier= Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(.5f),verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
+                    .fillMaxHeight(.3f),verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
 
                     val context= LocalContext.current
 
                     Card(modifier = Modifier
-                        .clickable {  // if admin then give confirm will perform quit admin else vice versa
-                            if (allSingeltonObjects.profileViewModel.isAdmin.value) {
-                                // making user
-                                Log.d("the password in profileViewModel","${password}  ${allSingeltonObjects.signInViewModel.password.value}")
-                                if (
-                                    password == (allSingeltonObjects.signInViewModel.password.value) &&
-                                    pan.length==10 &&
-                                    pan == (allSingeltonObjects.signInViewModel.panNo.value)
-                                ) {
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        allSingeltonObjects.profileViewModel.changeToUser(context)
-                                        allSingeltonObjects.profileViewModel.setToastText("You are now an user")
+                        .clickable {
+                            if(pan==""||password==""){
+                                Toast.makeText(context, "Please fill all the fields", Toast.LENGTH_SHORT).show()
+                            }
+                            else{
+                                // if admin then give confirm will perform quit admin else vice versa
+                                if (allSingeltonObjects.profileViewModel.isAdmin.value) {
+                                    // making user
+                                    Log.d("the password in profileViewModel","${password}  ${allSingeltonObjects.signInViewModel.password.value}")
+                                    if (
+                                        password == (allSingeltonObjects.signInViewModel.password.value) &&
+                                        pan.length==10 &&
+                                        pan == (allSingeltonObjects.signInViewModel.panNo.value)
+                                    ) {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            allSingeltonObjects.profileViewModel.changeToUser(context)
+                                            allSingeltonObjects.profileViewModel.setToastText("You are now an user")
 
 
-                                    }
+                                        }
                                         navController.navigate("userDashBoard")
 
-                                } else {
-                                    Toast
-                                        .makeText(
-                                            context,
-                                            "The passwords do not match",
-                                            Toast.LENGTH_SHORT
-                                        )
-                                        .show()
+                                    } else {
+                                        Toast
+                                            .makeText(
+                                                context,
+                                                "The passwords do not match",
+                                                Toast.LENGTH_SHORT
+                                            )
+                                            .show()
 
-                                }
-
-                            } else {
-                                // making admin
-                                Log.d("the password in profileViewModel","${password}  ${allSingeltonObjects.profileViewModel.password}")
-                                if (
-                                    password == (allSingeltonObjects.signInViewModel.password.value) &&
-                                    pan.length==10
-                                    ) {
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        allSingeltonObjects.profileViewModel.changeToAdmin(
-                                            pan,
-                                            context
-                                        )
-                                        allSingeltonObjects.profileViewModel.setToastText("You are now an admin")
                                     }
+
+                                } else {
+                                    // making admin
+                                    Log.d("the password in profileViewModel","${password}  ${allSingeltonObjects.profileViewModel.password}")
+                                    if (
+                                        password == (allSingeltonObjects.signInViewModel.password.value) &&
+                                        pan.length==10
+                                    ) {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            allSingeltonObjects.profileViewModel.changeToAdmin(
+                                                pan,
+                                                context
+                                            )
+                                            allSingeltonObjects.profileViewModel.setToastText("You are now an admin")
+                                        }
                                         navController.navigate("adminDashBoard")
 
-                                } else {
-                                    Toast
-                                        .makeText(
-                                            context,
-                                            "The passwords do not match",
-                                            Toast.LENGTH_SHORT
-                                        )
-                                        .show()
+                                    } else {
+                                        Toast
+                                            .makeText(
+                                                context,
+                                                "The passwords do not match",
+                                                Toast.LENGTH_SHORT
+                                            )
+                                            .show()
 
+                                    }
                                 }
                             }
                         }
@@ -327,7 +331,7 @@ public fun admin_registration  (
 
             }
 
-        }
+
 
 
     }

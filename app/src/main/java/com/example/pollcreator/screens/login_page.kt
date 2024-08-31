@@ -1,6 +1,7 @@
 package com.example.pollcreator.screens
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -449,39 +450,101 @@ fun login_page(
 
                             if (isLogin && !isAdmin) {
                                 // user login
-                                Log.d("signIn_admin", "registering admin")
-                                viewModel.viewModelScope.launch {
-                                    allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
-                                    viewModel.signInUser()
-                                    viewModel.saveDataInSharedPreferences(context = localContext)
+                                if(aadharNo==""  || password==""){
+                                    Toast.makeText(localContext,"Fill all the details",Toast.LENGTH_SHORT).show()
+
+                                }else {
+
+                                    Log.d("signIn_admin", "registering admin")
+                                    viewModel.viewModelScope.launch {
+                                        allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
+                                        viewModel.signInUser()
+                                        viewModel.saveDataInSharedPreferences(context = localContext)
+                                    }
+                                    if (isSuccess && !isAdmin) {
+                                        // use nav controller to go to next screen and remove that from backstack
+
+                                        navController.navigate("successAnimation/${isSuccess}")
+
+                                    } else if (isSuccess && isAdmin) {
+                                        navController.navigate("successAnimation/${isSuccess}")
+                                    } else {
+                                        navController.navigate("successAnimation/${isSuccess}")
+                                    }
                                 }
 
                                 Log.d("after viewmodel register user", "called")
                             } else if (isLogin && isAdmin) {
                                 // admin login
-                                Log.d("register_admin", "registering admin")
-                                viewModel.viewModelScope.launch {
-                                    allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
-                                    viewModel.signInAdmin()
-                                    viewModel.saveDataInSharedPreferences(context = localContext)
+                                if(aadharNo==""  || password=="" || panNo==""){
+                                    Toast.makeText(localContext,"Fill all the details",Toast.LENGTH_SHORT).show()
+
+                                }else {
+                                    Log.d("register_admin", "registering admin")
+                                    viewModel.viewModelScope.launch {
+                                        allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
+                                        viewModel.signInAdmin()
+                                        viewModel.saveDataInSharedPreferences(context = localContext)
+                                    }
+                                    if (isSuccess && !isAdmin) {
+                                        // use nav controller to go to next screen and remove that from backstack
+
+                                        navController.navigate("successAnimation/${isSuccess}")
+
+                                    } else if (isSuccess && isAdmin) {
+                                        navController.navigate("successAnimation/${isSuccess}")
+                                    } else {
+                                        navController.navigate("successAnimation/${isSuccess}")
+                                    }
                                 }
                                 Log.d("after viewmodel register user", "called")
                             } else if (!isLogin && !isAdmin) {
                                 //register user
-                                Log.d("register_admin", "registering admin")
-                                viewModel.viewModelScope.launch {
-                                    allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
-                                    viewModel.registerUser()
-                                    viewModel.saveDataInSharedPreferences(context = localContext)
+                                if(aadharNo==""  || password=="" || name=="" || age=="" || gender==""|| panNo=="" ){
+                                    Toast.makeText(localContext,"Fill all the details",Toast.LENGTH_SHORT).show()
+
+                                }else {
+                                    Log.d("register_admin", "registering admin")
+                                    viewModel.viewModelScope.launch {
+                                        allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
+                                        viewModel.registerUser()
+                                        viewModel.saveDataInSharedPreferences(context = localContext)
+                                    }
+                                    if (isSuccess && !isAdmin) {
+                                        // use nav controller to go to next screen and remove that from backstack
+
+                                        navController.navigate("successAnimation/${isSuccess}")
+
+                                    } else if (isSuccess && isAdmin) {
+                                        navController.navigate("successAnimation/${isSuccess}")
+                                    } else {
+                                        navController.navigate("successAnimation/${isSuccess}")
+                                    }
                                 }
                                 Log.d("after viewmodel register user", "called")
                             } else if (!isLogin && isAdmin) {
                                 // register admin
-                                Log.d("register_admin", "registering admin")
-                                viewModel.viewModelScope.launch {
-                                    allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
-                                    viewModel.registerAdmin()
-                                    viewModel.saveDataInSharedPreferences(context = localContext)
+
+                                if(aadharNo==""  || password=="" || name=="" || age=="" || gender==""){
+                                    Toast.makeText(localContext,"Fill all the details",Toast.LENGTH_SHORT).show()
+
+                                }else {
+                                    Log.d("register_admin", "registering admin")
+                                    viewModel.viewModelScope.launch {
+                                        allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
+                                        viewModel.registerAdmin()
+                                        viewModel.saveDataInSharedPreferences(context = localContext)
+                                    }
+                                    if (isSuccess && !isAdmin) {
+                                        // use nav controller to go to next screen and remove that from backstack
+
+                                        navController.navigate("successAnimation/${isSuccess}")
+
+                                    } else if (isSuccess && isAdmin) {
+                                        navController.navigate("successAnimation/${isSuccess}")
+                                    } else {
+                                        navController.navigate("successAnimation/${isSuccess}")
+                                    }
                                 }
                                 Log.d("after viewmodel register user", "called")
                             }
@@ -489,16 +552,7 @@ fun login_page(
 
 
 
-                            if (isSuccess && !isAdmin) {
-                                // use nav controller to go to next screen and remove that from backstack
 
-                                navController.navigate("successAnimation/${isSuccess}")
-
-                            } else if (isSuccess && isAdmin) {
-                                navController.navigate("successAnimation/${isSuccess}")
-                            } else {
-                                navController.navigate("successAnimation/${isSuccess}")
-                            }
 
                         }
                         .size(height = 55.dp, width = 200.dp),

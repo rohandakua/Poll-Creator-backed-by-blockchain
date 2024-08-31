@@ -1,6 +1,6 @@
 package com.example.pollcreator.dataclass
 class PollResultObj (
-    public var userOrAdmin : UserOrAdmin,
+    public var candidate : Candidate,
     public  var noOfVote : Long = 0L
 
 )

@@ -322,7 +322,7 @@ public fun profile(
                             .clickable {
                                 navController.navigate("changeRole")
                             }
-                            .size(height = 55.dp, width = 300.dp),
+                            .fillMaxWidth(.7f).weight(.2f),
                             shape = RoundedCornerShape(20.dp),
                             elevation = CardDefaults.cardElevation(
                                 pressedElevation = 20.dp, defaultElevation = 30.dp
@@ -346,7 +346,7 @@ public fun profile(
                         }
                         Card(modifier = Modifier
                             .clickable { navController.navigate("changePassword") }
-                            .size(height = 55.dp, width = 300.dp),
+                            .fillMaxWidth(.7f).weight(.2f),
                             shape = RoundedCornerShape(20.dp),
                             elevation = CardDefaults.cardElevation(
                                 pressedElevation = 20.dp, defaultElevation = 30.dp
@@ -373,7 +373,7 @@ public fun profile(
                                 allSingeltonObjects.profileViewModel.makeAllFieldsNull()
                                 navController.navigate("UserOrAdmin")
                             }
-                            .size(height = 55.dp, width = 300.dp),
+                            .fillMaxWidth(.7f).weight(.2f),
                             shape = RoundedCornerShape(20.dp),
                             elevation = CardDefaults.cardElevation(
                                 pressedElevation = 20.dp, defaultElevation = 30.dp

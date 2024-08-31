@@ -2,6 +2,7 @@ package com.example.pollcreator.dataclass
 
 import android.util.Log
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 
@@ -9,17 +10,14 @@ import java.time.LocalTime
 
 data class Poll(
     val _pollId: Double,
+    val _pollCreatedBy : Long,
     val _agendaOfPoll: String,
-    val _year: Int = 2020,
-    val _month: Int = 12,
-    val _day: Int = 1,
-    val _startHour: Int = 0,
-    val _startMinute: Int = 0,
-    val _startSec: Int = 0,
-    val _endHour: Int = 0,
-    val _endMinute: Int = 0,
-    val _endSec: Int = 0,
-    val _eligibleVoterAge : Int = 18
+    val _listOfCandidate : ArrayList<PollResultObj>,       // this will store the list of candidate with the vote they have gotten
+    val _eligibleVoterAge : Int = 18,
+    val _noOfMaleVoter : Long = 0,
+    val _noOfFemaleVoter: Long  =0,
+    val _startTime : LocalDateTime = LocalDateTime.now() ,               // using the localDateTime of java to store the starting and ending time of the polls
+    val _endTime : LocalDateTime = LocalDateTime.now()
 )
 //{
 //
