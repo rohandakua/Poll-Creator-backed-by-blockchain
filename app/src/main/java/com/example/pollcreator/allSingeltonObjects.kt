@@ -1,8 +1,7 @@
 package com.example.pollcreator
 
 import com.example.pollcreator.onlineStorage.fireBaseDataModel
-import com.example.pollcreator.onlineStorage.web3jDataModel
-import com.example.pollcreator.rubbish.helperFunctions
+import com.example.pollcreator.additionalFunctions.helperFunctions
 import com.example.pollcreator.viewModel.privateKeyViewModel
 import com.example.pollcreator.viewModel.profileViewModel
 import com.example.pollcreator.viewModel.signInViewModel
@@ -28,13 +27,15 @@ object allSingeltonObjects {
 
     val helperFunctions = helperFunctions()
 
-    val apiKey = "zWgAYQQLQFteREbHKp7F5RakZ-a_8gXA"
+    val apiKey = "YQJlzPCBTqZjpF6TFK2wNbVRLaLZ1Mf8"
 
     val sepoliaUrl = "https://eth-sepolia.g.alchemy.com/v2/${apiKey}"
 
     val contractAddress = "0xe63df052e96c7AB378769121288664A1A6F94EEC"
 
     val privateKeyViewModelObject = privateKeyViewModel()
+
+    val ytShowPrivateKeyUrl = "https://youtu.be/Kd4Wfjgixps?si=o3xhqTSMd6GebMbU"
 
 
 }

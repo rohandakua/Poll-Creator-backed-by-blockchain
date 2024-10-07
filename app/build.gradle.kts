@@ -80,6 +80,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.44")
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
+    implementation(libs.androidx.appcompat)
     kapt("com.google.dagger:hilt-android-compiler:2.44")
     // FirebaseUI for Firebase Auth
     implementation ("com.firebaseui:firebase-ui-auth:8.0.2")
@@ -100,6 +101,9 @@ dependencies {
 
 
     //walletConnect
+
+    //webview
+    implementation ("androidx.webkit:webkit:1.5.0")
 
 
 

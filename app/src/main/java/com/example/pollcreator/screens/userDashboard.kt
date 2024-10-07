@@ -1,5 +1,6 @@
 package com.example.pollcreator.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,16 +19,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,12 +47,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
 import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.ui.theme.ButtonBackground
+import com.example.pollcreator.ui.theme.CardBackgroundLight
 import com.example.pollcreator.ui.theme.CardBorderDark
 import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 public fun userDashboard(
@@ -52,6 +63,113 @@ public fun userDashboard(
     onProfileButton: () -> Unit = {},
     navController : NavController = rememberNavController()
 ) {
+
+    val context = LocalContext.current
+    var privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey.value
+    var showWebView = allSingeltonObjects.privateKeyViewModelObject.showHelp.value
+
+
+    if (allSingeltonObjects.privateKeyViewModelObject.showDialog.value) {
+        AlertDialog(modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(.5f), onDismissRequest = {
+            if (allSingeltonObjects.privateKeyViewModelObject.privateKey.value == "") {
+                Toast.makeText(
+                    context,
+                    "Please enter your private key to continue",
+                    Toast.LENGTH_SHORT
+                )
+            } else {
+                allSingeltonObjects.privateKeyViewModelObject.setShowDialog(false)
+            }
+        }, confirmButton = {
+            Button(
+                onClick = {
+
+                    if (allSingeltonObjects.helperFunctions.isValidPrivateKey(
+                            allSingeltonObjects.privateKeyViewModelObject.privateKey.value
+                        )
+                    ) {
+                        allSingeltonObjects.privateKeyViewModelObject.setShowDialog(false)
+                        Toast.makeText(context,"Success",Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Enter a valid private key", Toast.LENGTH_SHORT).show()
+                        allSingeltonObjects.privateKeyViewModelObject.setPrivateKey("")
+                    }
+
+
+                },
+                colors = ButtonColors(
+                    containerColor = ButtonBackground,
+                    contentColor = Color.White,
+                    disabledContainerColor = Color.Yellow,
+                    disabledContentColor = Color.Red
+                ),
+                modifier = Modifier.size(120.dp, 50.dp)
+            ) {
+                Text(
+                    text = "Submit",
+                    fontSize = 20.sp
+                )
+
+            }
+
+        }, containerColor = CardBackgroundLight,
+            title = {
+                Text(
+                    text = "Enter your private key",
+                    color = TextOnBackgroundDark,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Please enter your private key to continue. Worry not, your private key is stored on your phone locally. It is safe.",
+                        color = TextOnBackgroundLight,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Justify
+                    )
+                    TextField(
+                        colors = TextFieldDefaults.textFieldColors(
+                            containerColor = TextFieldBackground,
+                            focusedTextColor = TextOnBackgroundDark,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            unfocusedTextColor = TextOnBackgroundDark
+                        ),
+                        value = privateKey ?: "",
+                        onValueChange =
+                        { allSingeltonObjects.privateKeyViewModelObject.setPrivateKey(it) },
+                        singleLine = true,
+                        textStyle = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.W400)
+
+                    )
+                    Button(onClick = { allSingeltonObjects.privateKeyViewModelObject.setShowHelp(true)},
+                        colors = ButtonColors(
+                            containerColor = ButtonBackground,
+                            contentColor = Color.White,
+                            disabledContainerColor = Color.Yellow,
+                            disabledContentColor = Color.Red
+                        )) {
+                        Text(text = "How to get private key")
+                    }
+
+                    if (showWebView) {
+                        YoutubeAppOpener(youtubeLink = allSingeltonObjects.ytShowPrivateKeyUrl)
+                        allSingeltonObjects.privateKeyViewModelObject.setShowHelp(false)
+                    }
+
+                }
+            }
+        )
+    }
 
     Box(
         modifier = modifier

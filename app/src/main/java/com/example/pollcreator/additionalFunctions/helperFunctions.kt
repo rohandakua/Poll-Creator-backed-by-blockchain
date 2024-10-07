@@ -1,7 +1,30 @@
-package com.example.pollcreator.rubbish
+package com.example.pollcreator.additionalFunctions
+import org.web3j.crypto.ECKeyPair
+import org.web3j.crypto.Keys
+import org.web3j.crypto.Sign
+import java.math.BigInteger
 import java.util.*
 
 class helperFunctions {
+
+
+    fun isValidPrivateKey(privateKey: String?): Boolean {
+        try {
+            if (privateKey?.length != 64) {
+                return false
+            }
+            val privateKeyBigInt = BigInteger(privateKey, 16)
+
+            val ecKeyPair = ECKeyPair.create(privateKeyBigInt)
+
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+
+
 
     fun createCustomDate(
         year: Int, month: Int, day: Int,
