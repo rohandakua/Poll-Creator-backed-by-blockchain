@@ -37,11 +37,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17  // changed
+        targetCompatibility = JavaVersion.VERSION_17  // changed
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"       // changed
     }
     buildFeatures {
         compose = true
@@ -52,6 +52,11 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+    packaging {                                     // changed
+        resources {
+            excludes += "/META-INF/DISCLAIMER"
         }
     }
 }
@@ -70,8 +75,6 @@ dependencies {
     // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
 
-    // Add the dependency for the Firebase Authentication library
-    // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-auth")
 
     implementation("com.google.dagger:hilt-android:2.44")
@@ -90,13 +93,15 @@ dependencies {
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
 
 
-    // metamask
-    implementation ("io.metamask.androidsdk:metamask-android-sdk:0.2.1")
 
-    implementation ("com.github.WalletConnect:kotlin-walletconnect-lib:0.9.8")
 
     // web3j
-    implementation ("org.web3j:core:4.11.0-android")
+    implementation ("org.web3j:core:4.12.1")
+
+
+    //walletConnect
+
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

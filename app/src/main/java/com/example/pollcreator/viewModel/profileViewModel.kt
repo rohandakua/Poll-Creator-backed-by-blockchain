@@ -2,24 +2,14 @@ package com.example.pollcreator.viewModel
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pollcreator.allSingeltonObjects
-import com.example.pollcreator.dataclass.UserOrAdmin
-import com.example.pollcreator.onlineStorage.fireBaseDataModel
-import com.example.pollcreator.screens.MainActivity
-import com.google.android.gms.tasks.Task
-import com.google.firebase.database.DataSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class profileViewModel : ViewModel() {
