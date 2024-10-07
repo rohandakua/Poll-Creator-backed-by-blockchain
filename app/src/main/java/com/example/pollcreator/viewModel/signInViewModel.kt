@@ -9,12 +9,7 @@ import androidx.lifecycle.ViewModel
 import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.dataclass.UserOrAdmin
 import com.example.pollcreator.onlineStorage.fireBaseDataModel
-import com.example.pollcreator.screens.MainActivity
-import com.firebase.ui.auth.AuthUI.getApplicationContext
 import com.google.firebase.auth.FirebaseUser
-import kotlinx.coroutines.Dispatchers
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 class signInViewModel() : ViewModel() {
     val fireBaseDataModel: fireBaseDataModel = allSingeltonObjects.fireBaseDataModel

@@ -6,7 +6,7 @@ import com.example.pollcreator.dataclass.Event
 import com.example.pollcreator.dataclass.UserOrAdmin
 
 
-interface metaMaskRepository  {
+interface web3jRepository  {
 
 
     suspend fun createPoll(poll: Poll) : Event
