@@ -1,16 +1,13 @@
 package com.example.pollcreator.onlineStorage
 
-import android.content.Context
 import android.util.Log
-import androidx.compose.ui.platform.LocalContext
 import com.example.pollcreator.allSingeltonObjects
-import com.example.pollcreator.contract.PollCreator_sol_pollContract
+import com.example.pollcreator.contract.PollCreator
 import com.example.pollcreator.dataclass.Candidate
 import com.example.pollcreator.dataclass.Event
 import com.example.pollcreator.dataclass.Poll
 import com.example.pollcreator.dataclass.UserOrAdmin
 import com.example.pollcreator.repository.web3jRepository
-import com.example.pollcreator.screens.prev_poll_user_participated
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -31,14 +28,14 @@ class web3jDataModel() : web3jRepository {
     val privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey
     val web3j: Web3j = Web3j.build(HttpService(allSingeltonObjects.sepoliaUrl))
     var credential = Credentials.create(privateKey.toString())
-    lateinit var contract: PollCreator_sol_pollContract
+    lateinit var contract: PollCreator
 
 
     suspend fun createWeb3jObject() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 contract = async {
-                    PollCreator_sol_pollContract.load(
+                    PollCreator.load(
                         allSingeltonObjects.contractAddress,
                         web3j,
                         credential,
@@ -97,10 +94,9 @@ class web3jDataModel() : web3jRepository {
         // adding the vote to blockchain
         try {
             val receipt = contract.castVote(
-                BigInteger("${pollid.toString()}"),
-                BigInteger("${aadharNoOfCandidate.toString()}"),      //  find the index of the candidate in the list of candidate of the poll
+                BigInteger("${pollid.toString()}"),  //  find the index of the candidate in the list of candidate of the poll
                 BigInteger("${aadharNoOfCandidate.toString()}"),
-                BigInteger("${aadharNoOfVoter.toString()}"),
+                BigInteger("${aadharNoOfVoter.toString()}")
             ).sendAsync()
             receipt.await()
             Log.d("receipt", receipt.toString())
