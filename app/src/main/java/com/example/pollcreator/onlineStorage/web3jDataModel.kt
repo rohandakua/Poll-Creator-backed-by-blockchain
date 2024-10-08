@@ -25,7 +25,7 @@ import java.util.Date
 
 
 class web3jDataModel() : web3jRepository {
-    val privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey
+    var privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey
     val web3j: Web3j = Web3j.build(HttpService(allSingeltonObjects.sepoliaUrl))
     var credential = Credentials.create(privateKey.toString())
     lateinit var contract: PollCreator
@@ -33,7 +33,13 @@ class web3jDataModel() : web3jRepository {
 
     suspend fun createWeb3jObject() {
         CoroutineScope(Dispatchers.IO).launch {
+
+            privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey
+
             try {
+                allSingeltonObjects.helperFunctions.isValidPrivateKey(privateKey.toString())
+
+                credential = Credentials.create(privateKey.toString())
                 contract = async {
                     PollCreator.load(
                         allSingeltonObjects.contractAddress,
@@ -68,8 +74,6 @@ class web3jDataModel() : web3jRepository {
                 ).sendAsync()
                 receipt.await()
                 Log.d("receipt", receipt.toString())
-                allSingeltonObjects.referenceToPolls.child("${poll._pollId}").setValue(poll)
-                    .await()  // adding the poll to the firebase realtime database
                 return Event.SUCCESS
             } catch (e: Exception) {
                 Log.d("receipt", e.toString())
@@ -160,10 +164,8 @@ class web3jDataModel() : web3jRepository {
         for (poll in snapShot.children) {
             val pollTemp = poll.getValue(Poll::class.java)
             pollTemp?.let {
-                if (pollTemp._eligibleVoterAge <= age && allSingeltonObjects.helperFunctions.convertToUnixTimestampIST(
-                        Date()
-                    )
-                    <= allSingeltonObjects.helperFunctions.convertToUnixTimestampIST(pollTemp._startTime)
+                if (pollTemp._eligibleVoterAge <= age && allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())>= (pollTemp._startTime)
+                    && allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())<=pollTemp._endTime
                 ) {
                     pollList.add(pollTemp)
                 }

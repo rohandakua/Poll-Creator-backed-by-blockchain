@@ -38,6 +38,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBackgroundLight
@@ -55,7 +57,8 @@ public fun create_poll(
     modifier: Modifier = Modifier,
     onPrevVoteButton: () -> Unit = {},
     onProfileButton: () -> Unit = {},
-    onCreateButton: () -> Unit = {}
+    onCreateButton: () -> Unit = {},
+    navController: NavController = rememberNavController()
 ) {
     var name by remember {
         mutableStateOf("")

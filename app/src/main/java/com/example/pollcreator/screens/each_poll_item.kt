@@ -49,8 +49,10 @@ public fun each_poll_item(
     pollAgenda: String = "choose the prime minister of india choose the prime minister of india why not choosing",
     dateOfPoll: String = "20 aug 2024",
     timeOfPoll: String = "10:55 am to 10:55 pm",
-    onClick : ()->Unit = {}
+    onClick : ()->Unit = {},
+    pollId:Double=100020003000.1
 ) {
+    //TODO("make a pollViewModel for pollId")
     Box(
         modifier = modifier
             .fillMaxSize(), contentAlignment = Alignment.Center
@@ -69,8 +71,6 @@ public fun each_poll_item(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-
-
                     Text(
                         text = pollName.uppercase(),
                         fontWeight = FontWeight.SemiBold,

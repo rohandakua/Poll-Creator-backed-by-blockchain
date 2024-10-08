@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.screens.admin_dashboard
 import com.example.pollcreator.screens.admin_registration
 import com.example.pollcreator.screens.change_password_screen
+import com.example.pollcreator.screens.create_poll
 import com.example.pollcreator.screens.userDashboard
 import com.example.pollcreator.screens.login_page
 import com.example.pollcreator.screens.login_register
@@ -76,6 +77,10 @@ fun navController(modifier: Modifier = Modifier,viewModel: signInViewModel) {
 
         composable(route="changeRole"){
             admin_registration(navController=navController)
+        }
+
+        composable(route="createPoll"){
+            create_poll(navController=navController)
         }
 
 

@@ -106,6 +106,9 @@ public fun admin_dashboard(
                         )
                     ) {
                         allSingeltonObjects.privateKeyViewModelObject.setShowDialog(false)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            allSingeltonObjects.web3jDataModel.createWeb3jObject()
+                        }
                         Toast.makeText(context,"Success",Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(context, "Enter a valid private key", Toast.LENGTH_SHORT).show()

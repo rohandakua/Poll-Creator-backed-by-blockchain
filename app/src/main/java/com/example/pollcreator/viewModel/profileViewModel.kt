@@ -8,9 +8,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.dataclass.UserOrAdmin
+import com.example.pollcreator.dataclass.allAdminObj
+import com.firebase.ui.auth.data.model.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class profileViewModel : ViewModel() {
 
@@ -46,9 +50,6 @@ class profileViewModel : ViewModel() {
 
     val toastText: State<String?> get() = _toastText
 
-    // Getter and Setter functions
-
-    // Getter functions are already provided through `val` properties
 
     fun setToastText(value: String?) {
         _toastText.value = value?: null
@@ -203,7 +204,15 @@ class profileViewModel : ViewModel() {
         allSingeltonObjects.signInViewModel.setIsAdmin(true)
         allSingeltonObjects.signInViewModel.setPanNo(pan)
         allSingeltonObjects.signInViewModel.signInAdmin()
-
+        val user = allAdminObj(
+            _aadharNo = allSingeltonObjects.signInViewModel.aadharNo.value.toLong(),
+            _isRegisteredAsAdmin = true,
+            _pollsCreated = mutableListOf(),
+            _pollsParticipated = mutableListOf()
+        )
+        // putting the user in alladmin
+        allSingeltonObjects.referenceToAllAdmins.child(allSingeltonObjects.signInViewModel.aadharNo.value).setValue(user).await()
+        allSingeltonObjects.referenceToAllVoters.child(allSingeltonObjects.signInViewModel.aadharNo.value).child("_isAdmin").setValue(true).await()
 
 
     }
@@ -218,8 +227,29 @@ class profileViewModel : ViewModel() {
         allSingeltonObjects.signInViewModel.setIsAdmin(false)
         allSingeltonObjects.signInViewModel.setPanNo(null)
         allSingeltonObjects.signInViewModel.signInUser()
+        //deleting the data from alladmin
+        allSingeltonObjects.referenceToAllAdmins.child(allSingeltonObjects.signInViewModel.aadharNo.value).removeValue().await()
+
+        allSingeltonObjects.referenceToAllVoters.child(allSingeltonObjects.signInViewModel.aadharNo.value).child("_isAdmin").setValue(false).await()
 
     }
+
+    suspend fun getPreviousPolls(){       // get previous polls till now
+        TODO()
+    }
+    suspend fun getPollsCreated(){        // get all active the polls that are created by the admin
+        TODO()
+    }
+    suspend fun getPrevPollsCreated(){    // get all the polls that were created by the admin
+        TODO()
+    }
+    suspend fun getUpcomingPolls(){       // get all the upcoming polls
+        TODO()
+    }
+
+
+
+
 
 
 }

@@ -13,13 +13,13 @@ data class Poll(
     val _pollId: Double,        // aadharNo followed by no.Of Polls created by the user
     val _pollCreatedBy : Long,        //aadhar no of the admin who created the poll
     val _agendaOfPoll: String,
-    val _listOfCandidate : ArrayList<PollResultObj>,       // this will store the list of candidate with the vote they have gotten
+    val _listOfCandidate : MutableList<PollResultObj> = mutableListOf(),       // this will store the list of candidate with the vote they have gotten
     val _eligibleVoterAge : Int = 18,
     val _noOfMaleVoter : Long = 0,
     val _noOfFemaleVoter: Long  =0,
-    val _startTime : Date = Date(),               // using the localDateTime of java to store the starting and ending time of the polls
-    val _endTime : Date = Date(),
-    val _listOfVoterWhoHaveVoted : ArrayList<Long> = ArrayList<Long>()
+    val _startTime : Long = 0,               //this is the unix timestamp to ist
+    val _endTime : Long=0,
+    val _listOfVoterWhoHaveVoted : MutableList<Long> = mutableListOf<Long>()
 )
 
 

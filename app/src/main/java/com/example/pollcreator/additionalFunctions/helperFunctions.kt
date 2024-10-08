@@ -3,6 +3,7 @@ import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.crypto.Sign
 import java.math.BigInteger
+import java.text.SimpleDateFormat
 import java.util.*
 
 class helperFunctions {
@@ -93,6 +94,17 @@ class helperFunctions {
         )
         val unixTimestamp = convertToUnixTimestamp(currentDate)
         println("Unix Timestamp in IST: $unixTimestamp")
+    }
+
+    fun convertToDate(dateString: String, timeString: String): Date? {
+        val combinedString = "$dateString $timeString"
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()) // Adjusted to "dd/MM/yyyy"
+        return try {
+            dateFormat.parse(combinedString)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
 

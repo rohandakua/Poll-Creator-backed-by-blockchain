@@ -4,6 +4,8 @@ package com.example.pollcreator.onlineStorage
 import android.util.Log
 import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.dataclass.UserOrAdmin
+import com.example.pollcreator.dataclass.allAdminObj
+import com.example.pollcreator.dataclass.allVoterObj
 import com.example.pollcreator.repository.signUpRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -38,6 +40,14 @@ class fireBaseDataModel : signUpRepository {
             auth.createUserWithEmailAndPassword(emailOfUser, user._password).await()
             allSingeltonObjects.referenceToUsers.child(user._aadharNo.toString()).setValue(user)
                 .await()
+            // adding the user to allvoters list
+            val userVoter = allVoterObj(
+                _aadharNo = user._aadharNo,
+                _isAdmin = false,
+                _pollsVotedOn = mutableListOf()
+            )
+            allSingeltonObjects.referenceToAllVoters.child(user._aadharNo.toString()).setValue(userVoter).await()
+
             allSingeltonObjects.signInViewModel.setToastText("Registered Successfully !!!")
             true
         } catch (e: Exception) {
@@ -53,6 +63,23 @@ class fireBaseDataModel : signUpRepository {
             auth.createUserWithEmailAndPassword(emailOfUser, user._password).await()
             allSingeltonObjects.referenceToUsers.child(user._aadharNo.toString()).setValue(user)
                 .await()
+            // adding the user to allvoters list
+            val userVoter = allVoterObj(
+                _aadharNo = user._aadharNo,
+                _isAdmin = true,
+                _pollsVotedOn = mutableListOf()
+            )
+            allSingeltonObjects.referenceToAllVoters.child(user._aadharNo.toString()).setValue(userVoter).await()
+            //adding the user to alladmins list
+            val userAdmin = allAdminObj(
+                _aadharNo = user._aadharNo,
+                _isRegisteredAsAdmin = true,
+                _pollsCreated = mutableListOf(),
+                _pollsParticipated = mutableListOf()
+            )
+            // putting the user in alladmin
+            allSingeltonObjects.referenceToAllAdmins.child(allSingeltonObjects.signInViewModel.aadharNo.value).setValue(userAdmin).await()
+
             allSingeltonObjects.signInViewModel.setToastText("Registered Successfully !!!")
 
             true
