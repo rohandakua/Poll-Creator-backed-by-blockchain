@@ -3,6 +3,7 @@ package com.example.pollcreator
 import com.example.pollcreator.onlineStorage.fireBaseDataModel
 import com.example.pollcreator.additionalFunctions.helperFunctions
 import com.example.pollcreator.onlineStorage.web3jDataModel
+import com.example.pollcreator.viewModel.pollViewModel
 import com.example.pollcreator.viewModel.privateKeyViewModel
 import com.example.pollcreator.viewModel.profileViewModel
 import com.example.pollcreator.viewModel.signInViewModel
@@ -39,6 +40,8 @@ object allSingeltonObjects {
     val ytShowPrivateKeyUrl = "https://youtu.be/Kd4Wfjgixps?si=o3xhqTSMd6GebMbU"
 
     lateinit var  web3jDataModel : web3jDataModel
+
+    lateinit var pollViewModel: pollViewModel
 
 
 }

@@ -55,6 +55,7 @@ class createPollViewModel:ViewModel() {
             val end = allSingeltonObjects.helperFunctions.convertToUnixTimestamp(allSingeltonObjects.helperFunctions.convertToDate(_date.value,_endingTime.value)?:Date())
 
             val poll = Poll(
+                _name = _name.value,
                 _pollId = allSingeltonObjects.profileViewModel.aadharNo.value.toDouble()+decimal,
                 _pollCreatedBy = allSingeltonObjects.profileViewModel.aadharNo.value.toLong(),
                 _agendaOfPoll = agenda.value,

@@ -1,5 +1,6 @@
 package com.example.pollcreator.screens
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.*
@@ -16,22 +17,22 @@ fun YoutubeAppOpener(youtubeLink: String) {
     val context = LocalContext.current
     val youtubeVideoId = extractYoutubeVideoId(youtubeLink)
 
-        youtubeVideoId?.let {
-            // Create an intent to open YouTube app or browser
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$it")).apply {
-                putExtra("force_fullscreen", true)
-                `package` = "com.google.android.youtube"
-            }
-
-            if (intent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(intent)
-            } else {
-                val browserIntent =
-                    Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=$it"))
-                val chooser = Intent.createChooser(browserIntent, "Open with")
-                context.startActivity(chooser)
-            }
+    youtubeVideoId?.let {
+        // Create an intent to open YouTube app or browser
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$it")).apply {
+            putExtra("force_fullscreen", true)
+            `package` = "com.google.android.youtube"
         }
+
+        if (intent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(intent)
+        } else {
+            val browserIntent =
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=$it"))
+            val chooser = Intent.createChooser(browserIntent, "Open with")
+            context.startActivity(chooser)
+        }
+    }
 
 
 }

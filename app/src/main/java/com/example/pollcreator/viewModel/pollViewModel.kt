@@ -38,6 +38,7 @@ class pollViewModel(pollId:Double) : ViewModel() {     // this is the viewModel 
 
     init {
         setPollId(pollId)
+        Log.d("pollViewModel","initialised for pollid ${pollId}")
         getPollDetailsFromOnline()
     }
 
@@ -77,6 +78,20 @@ class pollViewModel(pollId:Double) : ViewModel() {     // this is the viewModel 
         password:String,
         pollId:Double
     ){
+        getPollDetailsFromOnline()
+        try {
+            CoroutineScope(Dispatchers.IO).launch {
+                allSingeltonObjects.web3jDataModel.castVote(
+                    pollid = pollId,
+                    aadharNoOfCandidate = aadharNoOfCandidate,
+                    gender = gender,
+                    aadharNoOfVoter = aadharNoOfVoter
+                )
+            }
+        }catch (e :Exception){
+            Log.d("castVote PollViewModel","$e")
+        }
+
 
 
     }
@@ -122,7 +137,5 @@ class pollViewModel(pollId:Double) : ViewModel() {     // this is the viewModel 
         }
     }
 
-    fun showAnimation(){
-        TODO()
-    }
+
 }

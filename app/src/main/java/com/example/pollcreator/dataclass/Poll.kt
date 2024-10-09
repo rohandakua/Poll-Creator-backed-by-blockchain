@@ -10,6 +10,7 @@ import java.util.*
 //   taking the day and startTime and endTime in individual inputs
 
 data class Poll(
+    val _name: String = "Name Of Poll",
     val _pollId: Double,        // aadharNo followed by no.Of Polls created by the user
     val _pollCreatedBy : Long,        //aadhar no of the admin who created the poll
     val _agendaOfPoll: String,

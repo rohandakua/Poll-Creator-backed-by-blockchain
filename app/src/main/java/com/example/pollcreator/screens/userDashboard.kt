@@ -1,5 +1,7 @@
 package com.example.pollcreator.screens
 
+import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -16,9 +18,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -31,6 +33,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,6 +53,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
 import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.dataclass.Poll
+import com.example.pollcreator.onlineStorage.web3jDataModel
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBackgroundLight
 import com.example.pollcreator.ui.theme.CardBorderDark
@@ -53,7 +62,12 @@ import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@SuppressLint("RememberReturnType")
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
@@ -65,8 +79,12 @@ public fun userDashboard(
 ) {
 
     val context = LocalContext.current
-    var privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey.value
     var showWebView = allSingeltonObjects.privateKeyViewModelObject.showHelp.value
+    var list:MutableList<Poll> = mutableListOf()
+    LaunchedEffect(true){
+        list= allSingeltonObjects.profileViewModel.getUpcomingPolls()
+    }
+
 
 
     if (allSingeltonObjects.privateKeyViewModelObject.showDialog.value) {
@@ -91,6 +109,11 @@ public fun userDashboard(
                         )
                     ) {
                         allSingeltonObjects.privateKeyViewModelObject.setShowDialog(false)
+                        Log.d("private key","${allSingeltonObjects.privateKeyViewModelObject.privateKey.value}")
+                        CoroutineScope(Dispatchers.IO).launch {
+                            delay(1000)
+                            allSingeltonObjects.web3jDataModel= web3jDataModel()
+                        }
                         Toast.makeText(context,"Success",Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(context, "Enter a valid private key", Toast.LENGTH_SHORT).show()
@@ -144,7 +167,7 @@ public fun userDashboard(
                             unfocusedIndicatorColor = Color.Transparent,
                             unfocusedTextColor = TextOnBackgroundDark
                         ),
-                        value = privateKey ?: "",
+                        value = allSingeltonObjects.privateKeyViewModelObject.privateKey.value ?: "",
                         onValueChange =
                         { allSingeltonObjects.privateKeyViewModelObject.setPrivateKey(it) },
                         singleLine = true,
@@ -228,15 +251,29 @@ public fun userDashboard(
                 colors = CardDefaults.elevatedCardColors(containerColor = TextFieldBackground),
                 border = BorderStroke(width = 2.dp, color = TextOnBackgroundDark)
             ) {
-                Card(Modifier.verticalScroll(rememberScrollState()) , colors = CardDefaults.elevatedCardColors(containerColor = Color.Transparent)) {
-                    each_poll_item(modifier = Modifier.height(150.dp))
-                    each_poll_item(modifier = Modifier.height(150.dp))
-                    each_poll_item(modifier = Modifier.height(150.dp))
-                    each_poll_item(modifier = Modifier.height(150.dp))
+                if(list.isEmpty()){
+                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        var t  by remember {
+                            mutableStateOf("Loading...")
+                        }
+                        fun sett(a:String){
+                            t=a
+                        }
 
-                    //implement here the list of the votes that are currently active
+                        LaunchedEffect(key1 = true) {
+                            delay(8000)
+                            sett("No Polls Available")
+                        }
+                        Text(text = t, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextOnBackgroundDark)
+                    }
 
-                    // fix the height of the each item to 150.dp
+                }else{
+                    LazyColumn {
+                        items(list){pollItem ->
+                            each_poll_item_upcoming_poll(modifier = Modifier.height(150.dp),pollItem = pollItem)
+                        }
+
+                    }
 
                 }
 
@@ -250,7 +287,7 @@ public fun userDashboard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Card(modifier = Modifier
-                    .clickable { onPrevVoteButton }
+                    .clickable { navController.navigate("prevPollUserParticipated") }
                     .size(height = 60.dp, width = 200.dp),
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(width = 2.dp, color = CardBorderDark),

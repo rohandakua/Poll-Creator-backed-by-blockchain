@@ -1,14 +1,12 @@
 package com.example.pollcreator.screens
 
 
-import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,17 +30,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.motionEventSpy
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.DisableContentCapture
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -52,12 +43,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
-import com.example.pollcreator.additionalFunctions.helperFunctions
 import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.onlineStorage.web3jDataModel
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBackgroundLight
 import com.example.pollcreator.ui.theme.CardBorderDark
@@ -65,9 +55,9 @@ import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +70,6 @@ public fun admin_dashboard(
     navController: NavController = rememberNavController()
 ) {
     val context = LocalContext.current
-    var privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey.value
     var showWebView = allSingeltonObjects.privateKeyViewModelObject.showHelp.value
 
 
@@ -106,8 +95,10 @@ public fun admin_dashboard(
                         )
                     ) {
                         allSingeltonObjects.privateKeyViewModelObject.setShowDialog(false)
+                        Log.d("private key","${allSingeltonObjects.privateKeyViewModelObject.privateKey.value}")
                         CoroutineScope(Dispatchers.IO).launch {
-                            allSingeltonObjects.web3jDataModel.createWeb3jObject()
+                            delay(1000)
+                            allSingeltonObjects.web3jDataModel= web3jDataModel()
                         }
                         Toast.makeText(context,"Success",Toast.LENGTH_SHORT).show()
                     } else {
@@ -162,7 +153,7 @@ public fun admin_dashboard(
                             unfocusedIndicatorColor = Color.Transparent,
                             unfocusedTextColor = TextOnBackgroundDark
                         ),
-                        value = privateKey ?: "",
+                        value = allSingeltonObjects.privateKeyViewModelObject.privateKey.value ?: "",
                         onValueChange =
                         { allSingeltonObjects.privateKeyViewModelObject.setPrivateKey(it) },
                         singleLine = true,
@@ -271,10 +262,10 @@ public fun admin_dashboard(
                     Modifier.verticalScroll(rememberScrollState()),
                     colors = CardDefaults.elevatedCardColors(containerColor = Color.Transparent)
                 ) {
-                    each_poll_item(modifier = Modifier.height(150.dp))
-                    each_poll_item(modifier = Modifier.height(150.dp))
-                    each_poll_item(modifier = Modifier.height(150.dp))
-                    each_poll_item(modifier = Modifier.height(150.dp))
+                    each_poll_item_upcoming_poll(modifier = Modifier.height(150.dp))
+                    each_poll_item_upcoming_poll(modifier = Modifier.height(150.dp))
+                    each_poll_item_upcoming_poll(modifier = Modifier.height(150.dp))
+                    each_poll_item_upcoming_poll(modifier = Modifier.height(150.dp))
 
                     //implement here the list of the votes that are currently active
 

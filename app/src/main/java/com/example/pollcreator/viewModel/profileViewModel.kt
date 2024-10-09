@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.dataclass.Poll
 import com.example.pollcreator.dataclass.UserOrAdmin
 import com.example.pollcreator.dataclass.allAdminObj
 import com.firebase.ui.auth.data.model.User
@@ -15,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 
 class profileViewModel : ViewModel() {
 
@@ -31,8 +33,9 @@ class profileViewModel : ViewModel() {
     private var _isSuccess = mutableStateOf(true)
     private var _noOfPollCreated = mutableStateOf(0)
     private var _toastText = mutableStateOf<String?>(null)
-
     private var _isLoading = mutableStateOf(true)
+    private var _pollItem = mutableStateOf<Poll?>(null)
+
     val isLoading: State<Boolean> get() = _isLoading
 
 
@@ -47,8 +50,23 @@ class profileViewModel : ViewModel() {
     val panNo: State<String?> get() = _panNo
     val isSuccess: State<Boolean> get() = _isSuccess
     val noOfPollCreated: State<Int> get() = _noOfPollCreated
-
     val toastText: State<String?> get() = _toastText
+    val pollItem :State<Poll?> get() = _pollItem
+
+    fun setPollItem(value:Poll?){
+        _pollItem.value=value?: Poll(
+            _pollId = 100010001000.1000,
+            _pollCreatedBy = 100010001000,
+            _agendaOfPoll = "pollAgenda",
+            _eligibleVoterAge = 20,
+            _startTime = 1633036800000,
+            _endTime = 1633036899999
+        )
+    }
+
+    fun getPollItem(): Poll? {
+        return pollItem.value
+    }
 
 
     fun setToastText(value: String?) {
@@ -234,17 +252,74 @@ class profileViewModel : ViewModel() {
 
     }
 
-    suspend fun getPreviousPolls(){       // get previous polls till now
-        TODO()
+    suspend fun getPreviousPolls(): MutableList<Poll> {       // get previous polls till now that user have participated
+        var list = mutableListOf<Poll>()
+        try {
+            list = allSingeltonObjects.web3jDataModel.getPreviousPoll(aadharNo.value.toLong()).toMutableList()
+
+        }catch (e : Exception){
+            Log.d("profileViewModel","from getPrevPoll $e")
+        }
+        return list
     }
-    suspend fun getPollsCreated(){        // get all active the polls that are created by the admin
-        TODO()
+    suspend fun getPollsCreated(): MutableList<Poll> {        // get all active the polls that are created by the admin
+        var list = mutableListOf<Poll>()
+        try {
+            list = allSingeltonObjects.web3jDataModel.getAllPollCreatedByAdmin(aadharNo.value.toLong()).toMutableList()
+
+        }catch (e : Exception){
+            Log.d("profileViewModel","from getPollCreated $e")
+        }
+        // remove all the polls that are not active
+        for (poll in list){
+            if(poll._endTime<allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())){
+                list.remove(poll)
+            }
+        }
+        return list
     }
-    suspend fun getPrevPollsCreated(){    // get all the polls that were created by the admin
-        TODO()
+    suspend fun getPrevPollsCreated(): MutableList<Poll> {    // get all the polls that were created by the admin
+        var list = mutableListOf<Poll>()
+        try {
+            list = allSingeltonObjects.web3jDataModel.getAllPollCreatedByAdmin(aadharNo.value.toLong()).toMutableList()
+
+        }catch (e : Exception){
+            Log.d("profileViewModel","from getPrevPollCreated $e")
+        }
+        // remove all the polls that are active
+        for (poll in list){
+            if(poll._startTime>allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())){
+                list.remove(poll)
+            }
+        }
+        return list
     }
-    suspend fun getUpcomingPolls(){       // get all the upcoming polls
-        TODO()
+    suspend fun getUpcomingPolls(): MutableList<Poll> {       // get all the upcoming polls
+        var list = mutableListOf<Poll>()
+        try {
+            list = allSingeltonObjects.web3jDataModel.getAllUpcomingPoll(age.value.toInt()).toMutableList()
+
+        }catch (e : Exception){
+            Log.d("profileViewModel","$e")
+        }
+        return list
+    }
+
+    suspend fun getUpcmingPollsForAdminToParticipate(): MutableList<Poll> {    // get all the polls where the admin can participate
+        var list = mutableListOf<Poll>()
+        try {
+            list = allSingeltonObjects.web3jDataModel.getAllPollCreatedByAdmin(aadharNo.value.toLong()).toMutableList()
+
+        }catch (e : Exception){
+            Log.d("profileViewModel","from getPrevPollCreated $e")
+        }
+        // remove all the polls that are active
+        for (poll in list){
+            if(poll._eligibleVoterAge>age.value.toInt()){
+                list.remove(poll)
+            }
+        }
+        return list
     }
 
 

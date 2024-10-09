@@ -53,6 +53,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBackgroundLight
@@ -67,8 +69,12 @@ import com.example.pollcreator.ui.theme.TextOnBackgroundLight
 @Preview
 public fun participate_in_poll_confirmation(
     modifier: Modifier = Modifier,
-    onParticipateBtnClick: () -> Unit = {}
+    onParticipateBtnClick: () -> Unit = {},
+    navController: NavHostController = rememberNavController()
 ) {
+    var name by remember {
+        mutableStateOf("")
+    }
     var aadharNo by remember {
         mutableStateOf<Long?>(null)
     }
@@ -136,7 +142,7 @@ public fun participate_in_poll_confirmation(
                 colors = CardDefaults.cardColors(containerColor = CardBackgroundLight),
                 modifier = Modifier
                     .fillMaxWidth(.98f)
-                    .fillMaxHeight(.6f),
+                    .fillMaxHeight(.7f),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             ) {
 
@@ -150,6 +156,52 @@ public fun participate_in_poll_confirmation(
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    TextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 5.dp),
+                        shape = RoundedCornerShape(25.dp),
+                        colors = TextFieldDefaults.textFieldColors(
+                            containerColor = TextFieldBackground,
+                            focusedTextColor = TextOnBackgroundDark,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            cursorColor = TextOnBackgroundDark,
+                            unfocusedTextColor = TextOnBackgroundDark
+
+
+                        ),
+                        singleLine = true,
+                        textStyle = TextStyle(
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(id = R.drawable.baseline_person_24),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(start = 15.dp, bottom = 3.dp, end = 5.dp)
+                                    .size(42.dp)
+                            )
+                        },
+                        placeholder = {
+                            Text(
+                                text = "Name",
+                                color = TextOnBackgroundDark,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text
+                        )
+
+                    )
+
+
+
                     TextField(
                         value = aadharNo?.toString() ?: "",
                         onValueChange = { aadharNo = it.toLongOrNull() },

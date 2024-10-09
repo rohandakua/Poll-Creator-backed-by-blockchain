@@ -23,21 +23,27 @@ import org.web3j.protocol.http.HttpService
 import java.math.BigInteger
 import java.util.Date
 
-
 class web3jDataModel() : web3jRepository {
-    var privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey
+    var privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey.value.toString()
     val web3j: Web3j = Web3j.build(HttpService(allSingeltonObjects.sepoliaUrl))
-    var credential = Credentials.create(privateKey.toString())
+    lateinit var credential : Credentials
     lateinit var contract: PollCreator
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey.value.toString()
+            Log.d("private key from web3j","${privateKey}")
+            credential = Credentials.create(privateKey)
+            createWeb3jObject()
+        }
+    }
 
 
     suspend fun createWeb3jObject() {
         CoroutineScope(Dispatchers.IO).launch {
 
-            privateKey = allSingeltonObjects.privateKeyViewModelObject.privateKey
 
             try {
-                allSingeltonObjects.helperFunctions.isValidPrivateKey(privateKey.toString())
+                allSingeltonObjects.helperFunctions.isValidPrivateKey(privateKey)
 
                 credential = Credentials.create(privateKey.toString())
                 contract = async {
@@ -164,7 +170,7 @@ class web3jDataModel() : web3jRepository {
         for (poll in snapShot.children) {
             val pollTemp = poll.getValue(Poll::class.java)
             pollTemp?.let {
-                if (pollTemp._eligibleVoterAge <= age && allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())>= (pollTemp._startTime)
+                if (pollTemp._eligibleVoterAge <= age && allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date()) <= (pollTemp._startTime)
                     && allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())<=pollTemp._endTime
                 ) {
                     pollList.add(pollTemp)

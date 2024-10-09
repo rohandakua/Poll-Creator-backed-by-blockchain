@@ -1,12 +1,11 @@
 package com.example.pollcreator.screens
 
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,12 +17,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,10 +39,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.motionEventSpy
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -56,18 +51,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
+import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.dataclass.Poll
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBorderDark
 import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
-public fun user_each_poll_clicked(
+public fun show_candidate_list_for_vote(
     modifier: Modifier = Modifier,
     onPrevVoteButton: () -> Unit = {},
     callDialog: () -> Unit = {},
@@ -75,11 +75,11 @@ public fun user_each_poll_clicked(
     onProfileButton: () -> Unit = {},
     poll_title: String = "National Elections",
     currentPassword: String = "",
-    isPollOngoing: Boolean = true,
-    aadharno1: Long = 333335555555
+    aadharno1: Long = 333335555555,
+    navController: NavHostController = rememberNavController()
 ) {
 
-
+    val context = LocalContext.current
     var password by remember {
         mutableStateOf("")
     }
@@ -88,6 +88,21 @@ public fun user_each_poll_clicked(
     var selectedCandidateAadhar by remember {
         mutableStateOf<Long?>(null)
     }
+
+    var poll = allSingeltonObjects.profileViewModel.getPollItem() ?: Poll(
+        _pollId = 123412341234.12,
+        _pollCreatedBy = 123412341234,
+        _agendaOfPoll = "pollAgenda",
+        _eligibleVoterAge = 20,
+        _startTime = 1633036800000,
+        _endTime = 1633036899999
+    )
+    var listOfCandidates = poll._listOfCandidate
+    var isPollOngoing =
+        if (allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date()) > poll._startTime && allSingeltonObjects.helperFunctions.convertToUnixTimestamp(
+                Date()
+            ) < poll._endTime
+        ) true else false
 
     Box(
         modifier = modifier
@@ -138,7 +153,17 @@ public fun user_each_poll_clicked(
                 )
             }
 
-            each_poll_item(modifier = Modifier.height(180.dp))
+            each_poll_item_upcoming_poll(
+                modifier = Modifier.height(180.dp),
+                pollItem = allSingeltonObjects.profileViewModel.getPollItem() ?: Poll(
+                    _pollId = 123412341234.12,
+                    _pollCreatedBy = 123412341234,
+                    _agendaOfPoll = "pollAgenda",
+                    _eligibleVoterAge = 20,
+                    _startTime = 1633036800000,
+                    _endTime = 1633036899999
+                )
+            )
 
 
 
@@ -151,78 +176,22 @@ public fun user_each_poll_clicked(
                 colors = CardDefaults.elevatedCardColors(containerColor = TextFieldBackground),
                 border = BorderStroke(width = 2.dp, color = TextOnBackgroundDark)
             ) {
-                Card(
-                    Modifier.verticalScroll(rememberScrollState()),
-                    colors = CardDefaults.elevatedCardColors(containerColor = Color.Transparent)
-                ) {
-                    Column {
-
-                        ///  apply here the list of the participant and take them as input in a list and make them show in a loop and also
-                        ///          make a if condition where if the isPollOngoing is true then the radiobutton will show else it wont
 
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                LazyColumn {
+                    items(listOfCandidates) { item ->
+                        RadioButton(
+                            selected = selectedCandidateAadhar == item.candidate._aadharNo,
+                            onClick = { selectedCandidateAadhar = item.candidate._aadharNo },
 
-                            RadioButton(
-                                selected = if (selectedCandidateAadhar == aadharno1) true else false,
-                                onClick = { selectedCandidateAadhar = aadharno1 },
-
-                                colors = RadioButtonColors(
-                                    selectedColor = Color.White,
-                                    unselectedColor = Color.Black,
-                                    disabledUnselectedColor = Color.Transparent,
-                                    disabledSelectedColor = Color.White
-                                )
+                            colors = RadioButtonColors(
+                                selectedColor = Color.White,
+                                unselectedColor = Color.Black,
+                                disabledUnselectedColor = Color.Transparent,
+                                disabledSelectedColor = Color.White
                             )
-                            each_participant_in_poll_clicked()
-
-
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = if (selectedCandidateAadhar == aadharno1) true else false,
-                                onClick = { selectedCandidateAadhar = aadharno1 },
-                                colors = RadioButtonColors(
-                                    selectedColor = Color.White,
-                                    unselectedColor = Color.Black,
-                                    disabledUnselectedColor = Color.Transparent,
-                                    disabledSelectedColor = Color.White
-                                )
-                            )
-                            each_participant_in_poll_clicked()
-
-
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = if (selectedCandidateAadhar == aadharno1) true else false,
-                                onClick = { selectedCandidateAadhar = aadharno1 },
-                                colors = RadioButtonColors(
-                                    selectedColor = Color.White,
-                                    unselectedColor = Color.Black,
-                                    disabledUnselectedColor = Color.Transparent,
-                                    disabledSelectedColor = Color.White
-                                )
-                            )
-                            each_participant_in_poll_clicked()
-
-
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = if (selectedCandidateAadhar == aadharno1) true else false,
-                                onClick = { selectedCandidateAadhar = aadharno1 },
-                                colors = RadioButtonColors(
-                                    selectedColor = Color.White,
-                                    unselectedColor = Color.Black,
-                                    disabledUnselectedColor = Color.Transparent,
-                                    disabledSelectedColor = Color.White
-                                )
-                            )
-                            each_participant_in_poll_clicked()
-
-
-                        }
+                        )
+                        each_participant_in_poll_detailed(pollResultObj = item)
 
                     }
 
@@ -298,7 +267,41 @@ public fun user_each_poll_clicked(
                     Spacer(modifier = Modifier.size(10.dp))
 
                     Card(modifier = Modifier
-                        .clickable { if (password.equals(passwordVisible)) callDialog() else onFailBtn() }
+                        .clickable {
+                            if (allSingeltonObjects.profileViewModel.password.equals(password)) {
+                                if (selectedCandidateAadhar.toString().length != 12) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "Please select a candidate",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                } else {
+                                    //make the call to cast vote
+                                    allSingeltonObjects.pollViewModel.castVote(
+                                        aadharNoOfCandidate = selectedCandidateAadhar
+                                            ?: 123412341234,
+                                        gender = allSingeltonObjects.profileViewModel.gender.value.toString()
+                                            ?: "male",
+                                        aadharNoOfVoter = allSingeltonObjects.profileViewModel.aadharNo.value.toLong(),
+                                        password = password,
+                                        pollId = poll._pollId
+                                    )
+                                }
+
+
+                            } else {
+                                Toast
+                                    .makeText(
+                                        context,
+                                        "Your password is incorrect",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
+
+                            }
+                        }
                         .size(height = 50.dp, width = 250.dp),
                         shape = RoundedCornerShape(20.dp),
                         elevation = CardDefaults.cardElevation(
@@ -400,7 +403,9 @@ public fun user_each_poll_clicked(
                     Modifier
                         .padding(end = 30.dp)
                         .size(50.dp)
-                        .clickable { onProfileButton }
+                        .clickable {
+                            navController.navigate("profile")
+                        }
 
                 )
 

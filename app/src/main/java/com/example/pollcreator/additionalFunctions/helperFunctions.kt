@@ -23,6 +23,11 @@ class helperFunctions {
             return false
         }
     }
+    fun getDateFromTimestamp(timestamp: Long): String {
+        val date = Date(timestamp)
+        val format = SimpleDateFormat("dd MMM yyyy hh:mm a", Locale.getDefault()) // Adjust format as needed
+        return format.format(date)
+    }
 
 
 
