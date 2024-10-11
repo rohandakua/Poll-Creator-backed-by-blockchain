@@ -11,13 +11,13 @@ interface web3jRepository  {
 
     suspend fun createPoll(poll: Poll) : Event
 
-    suspend fun castVote(pollid : Double , aadharNoOfCandidate : Long,gender : String , aadharNoOfVoter : Long) : Event
+    suspend fun castVote(pollid : String , aadharNoOfCandidate : String,gender : String , aadharNoOfVoter : String) : Event
 
-    suspend fun getAllPollCreatedByAdmin ( aadharNoOfAdmin : Long) : List<Poll>
+    suspend fun getAllPollCreatedByAdmin ( aadharNoOfAdmin : String) : List<Poll>
 
     suspend fun getAllUpcomingPoll( age : Int) : List<Poll>    // give all the poll that are active and the eligible age is lesser or equal to the age
 
-    suspend fun getPreviousPoll(aadharNoOfVoter: Long) : List<Poll>
+    suspend fun getPreviousPoll(aadharNoOfVoter: String) : List<Poll>
 
     suspend fun becomeCandidateOfPoll(candidate: Candidate) : Event
 

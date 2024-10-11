@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.allSingeltonObjects
@@ -36,17 +37,16 @@ import com.example.pollcreator.viewModel.pollViewModel
 import java.util.Date
 
 
-@Preview(device = "spec:width=450dp,height=150dp,dpi=480")
 @Composable
 public fun each_poll_item_prev_poll_user(
     modifier: Modifier = Modifier,
 
     onClick : ()->Unit = {},
     pollId:Double=100020003000.1,
-    navController: NavHostController = rememberNavController(),
+    navController: NavController,
     pollItem : Poll = Poll(
-        _pollId = allSingeltonObjects.profileViewModel.aadharNo.value.toDouble(),
-        _pollCreatedBy = allSingeltonObjects.profileViewModel.aadharNo.value.toLong(),
+        _pollId = allSingeltonObjects.profileViewModel.aadharNo.value,
+        _pollCreatedBy = allSingeltonObjects.profileViewModel.aadharNo.value,
         _agendaOfPoll = "pollAgenda",
         _eligibleVoterAge = 20,
         _startTime = 1633036800000,
@@ -60,8 +60,6 @@ public fun each_poll_item_prev_poll_user(
     val endTime: String = allSingeltonObjects.helperFunctions.getDateFromTimestamp(pollItem._endTime)
     // making changes in the profileViewModel for storing the poll Item
     allSingeltonObjects.profileViewModel.setPollItem(pollItem)
-    //making changes in the pollViewModel
-    allSingeltonObjects.pollViewModel = pollViewModel(pollItem._pollId)
 
     Box(
         modifier = modifier
@@ -70,6 +68,8 @@ public fun each_poll_item_prev_poll_user(
     ) {
         Card(
             modifier = Modifier.clickable {
+                //making changes in the pollViewModel
+                allSingeltonObjects.pollViewModel = pollViewModel(pollItem._pollId)
                 // check for the time and then decide what to do
                 val currentTime : Long = allSingeltonObjects.helperFunctions.convertToUnixTimestamp(
                     Date()
@@ -138,7 +138,7 @@ public fun each_poll_item_prev_poll_user(
                         )
 
                         Text(
-                            text = startTime.substring(13)+" to " + endTime.substring(13),
+                            text = startTime.substring(12)+" to " + endTime.substring(12),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.DarkGray

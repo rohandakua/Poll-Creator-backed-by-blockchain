@@ -35,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,6 +54,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
 import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.dataclass.Event
 import com.example.pollcreator.dataclass.Poll
 import com.example.pollcreator.onlineStorage.web3jDataModel
 import com.example.pollcreator.ui.theme.ButtonBackground
@@ -64,26 +66,33 @@ import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
 public fun userDashboard(
     modifier: Modifier = Modifier,
     onPrevVoteButton: () -> Unit = {},
     onProfileButton: () -> Unit = {},
-    navController : NavController = rememberNavController()
+    navController: NavController
 ) {
 
     val context = LocalContext.current
     var showWebView = allSingeltonObjects.privateKeyViewModelObject.showHelp.value
-    var list:MutableList<Poll> = mutableListOf()
-    LaunchedEffect(true){
-        list= allSingeltonObjects.profileViewModel.getUpcomingPolls()
+    LaunchedEffect(true) {
+        allSingeltonObjects.profileViewModel.getUserDetails(context.applicationContext)
     }
+    val list by allSingeltonObjects.profileViewModel.listpm.observeAsState(initial = emptyList())
+    LaunchedEffect(true) {
+        if (allSingeltonObjects.privateKeyViewModelObject.privateKey.value.length == 64) {
+            async { allSingeltonObjects.profileViewModel.getUpcomingPolls() }.await()
+
+        }
+    }
+
 
 
 
@@ -109,14 +118,43 @@ public fun userDashboard(
                         )
                     ) {
                         allSingeltonObjects.privateKeyViewModelObject.setShowDialog(false)
-                        Log.d("private key","${allSingeltonObjects.privateKeyViewModelObject.privateKey.value}")
+                        Log.d(
+                            "private key",
+                            "${allSingeltonObjects.privateKeyViewModelObject.privateKey.value}"
+                        )
+                        //checking if the user is registered in the blockchain
                         CoroutineScope(Dispatchers.IO).launch {
-                            delay(1000)
-                            allSingeltonObjects.web3jDataModel= web3jDataModel()
+                            allSingeltonObjects.web3jDataModel = web3jDataModel()
+                            delay(500)
+                            if (!allSingeltonObjects.profileViewModel.isRegisteredInBC.value && allSingeltonObjects.signInViewModel.aadharNo.value.length == 12) {
+                                if (allSingeltonObjects.web3jDataModel.becomeVoter(async { allSingeltonObjects.signInViewModel.getUserDetailsUser() }.await()) == Event.SUCCESS) {
+                                    Toast.makeText(
+                                        context,
+                                        "Successfully registered , Always use same private key for this account",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Not Registered , Please try again later",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+
+                            }
                         }
-                        Toast.makeText(context,"Success",Toast.LENGTH_SHORT).show()
+                        CoroutineScope(Dispatchers.IO).launch{
+                            if(allSingeltonObjects.privateKeyViewModelObject.privateKey.value.length==64){
+                                async {  allSingeltonObjects.profileViewModel.getUpcomingPolls()}.await()
+
+                            }
+                        }
+
+
+                        Toast.makeText(context, "Success", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(context, "Enter a valid private key", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Enter a valid private key", Toast.LENGTH_SHORT)
+                            .show()
                         allSingeltonObjects.privateKeyViewModelObject.setPrivateKey("")
                     }
 
@@ -167,20 +205,23 @@ public fun userDashboard(
                             unfocusedIndicatorColor = Color.Transparent,
                             unfocusedTextColor = TextOnBackgroundDark
                         ),
-                        value = allSingeltonObjects.privateKeyViewModelObject.privateKey.value ?: "",
+                        value = allSingeltonObjects.privateKeyViewModelObject.privateKey.value
+                            ?: "",
                         onValueChange =
                         { allSingeltonObjects.privateKeyViewModelObject.setPrivateKey(it) },
                         singleLine = true,
                         textStyle = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.W400)
 
                     )
-                    Button(onClick = { allSingeltonObjects.privateKeyViewModelObject.setShowHelp(true)},
+                    Button(
+                        onClick = { allSingeltonObjects.privateKeyViewModelObject.setShowHelp(true) },
                         colors = ButtonColors(
                             containerColor = ButtonBackground,
                             contentColor = Color.White,
                             disabledContainerColor = Color.Yellow,
                             disabledContentColor = Color.Red
-                        )) {
+                        )
+                    ) {
                         Text(text = "How to get private key")
                     }
 
@@ -251,33 +292,44 @@ public fun userDashboard(
                 colors = CardDefaults.elevatedCardColors(containerColor = TextFieldBackground),
                 border = BorderStroke(width = 2.dp, color = TextOnBackgroundDark)
             ) {
-                if(list.isEmpty()){
-                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        var t  by remember {
+                if (list.isEmpty()) {
+                    Column(
+                        Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        var t by remember {
                             mutableStateOf("Loading...")
                         }
-                        fun sett(a:String){
-                            t=a
+
+                        fun sett(a: String) {
+                            t = a
                         }
 
                         LaunchedEffect(key1 = true) {
                             delay(8000)
                             sett("No Polls Available")
                         }
-                        Text(text = t, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextOnBackgroundDark)
+                        Text(
+                            text = t,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextOnBackgroundDark
+                        )
                     }
 
-                }else{
+                } else {
                     LazyColumn {
-                        items(list){pollItem ->
-                            each_poll_item_upcoming_poll(modifier = Modifier.height(150.dp),pollItem = pollItem)
+                        items(list) { pollItem ->
+                            each_poll_item_upcoming_poll(
+                                modifier = Modifier.height(150.dp), pollItem = pollItem,
+                                navController = navController
+                            )
                         }
 
                     }
 
                 }
-
-
 
 
             }

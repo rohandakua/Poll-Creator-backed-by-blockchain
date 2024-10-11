@@ -1,5 +1,7 @@
 package com.example.pollcreator.screens
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +44,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
+import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.dataclass.Poll
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBackgroundLight
 import com.example.pollcreator.ui.theme.CardBorderDark
@@ -49,6 +54,7 @@ import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextFieldBackgroundLight
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
+import com.example.pollcreator.viewModel.createPollViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
@@ -60,34 +66,15 @@ public fun create_poll(
     onCreateButton: () -> Unit = {},
     navController: NavController = rememberNavController()
 ) {
-    var name by remember {
-        mutableStateOf("")
+    allSingeltonObjects.createPollViewModel = createPollViewModel()
 
-    }
-    var agenda by remember {
-        mutableStateOf("")
-
-    }
-    var date by remember {
-        mutableStateOf("")
-
-    }
-    var startingTime by remember {
-        mutableStateOf("")
-
-    }
-    var endingTime by remember {
-        mutableStateOf("")
-
-    }
-    var reqAge by remember {
-        mutableStateOf<Int?>(null)
-
-    }
-
-
-
-
+    val name by allSingeltonObjects.createPollViewModel.name
+    val agenda by allSingeltonObjects.createPollViewModel.agenda
+    val date by allSingeltonObjects.createPollViewModel.date
+    val startingTime by allSingeltonObjects.createPollViewModel.startingTime
+    val endingTime by allSingeltonObjects.createPollViewModel.endingTime
+    val reqAge by allSingeltonObjects.createPollViewModel.reqAge
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -120,7 +107,7 @@ public fun create_poll(
 
                 TextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = { allSingeltonObjects.createPollViewModel.setName(it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
@@ -165,7 +152,7 @@ public fun create_poll(
 
                 TextField(
                     value = agenda,
-                    onValueChange = { agenda = it },
+                    onValueChange = { allSingeltonObjects.createPollViewModel.setAgenda(it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
@@ -212,7 +199,7 @@ public fun create_poll(
 
                 TextField(
                     value = date,
-                    onValueChange = { date = it },
+                    onValueChange = { allSingeltonObjects.createPollViewModel.setDate(it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
@@ -243,23 +230,24 @@ public fun create_poll(
                     },
                     placeholder = {
                         Text(
-                            text = "Date of the poll",
+                            text = "Date of the poll     (dd/mm/yyyy)",
                             color = TextOnBackgroundDark,
                             fontWeight = FontWeight.SemiBold
                         )
                     },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text
-                    )
+                    ),
 
-                )
+
+                    )
 
 
 
 
                 TextField(
                     value = startingTime,
-                    onValueChange = { startingTime = it },
+                    onValueChange = { allSingeltonObjects.createPollViewModel.setStartingTime(it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
@@ -290,7 +278,7 @@ public fun create_poll(
                     },
                     placeholder = {
                         Text(
-                            text = "Starting time of the poll",
+                            text = "Starting time of the poll   (hh:mm)",
                             color = TextOnBackgroundDark,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -304,7 +292,7 @@ public fun create_poll(
 
                 TextField(
                     value = endingTime,
-                    onValueChange = { endingTime = it },
+                    onValueChange = { allSingeltonObjects.createPollViewModel.setEndingTime(it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
@@ -335,7 +323,7 @@ public fun create_poll(
                     },
                     placeholder = {
                         Text(
-                            text = "Ending time of poll",
+                            text = "Ending time of poll   (hh:mm)",
                             color = TextOnBackgroundDark,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -349,8 +337,8 @@ public fun create_poll(
 
 
                 TextField(
-                    value = reqAge?.toString() ?: "",
-                    onValueChange = { reqAge = it.toIntOrNull() },
+                    value = reqAge,
+                    onValueChange = { allSingeltonObjects.createPollViewModel.setReqAge(it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
@@ -381,7 +369,7 @@ public fun create_poll(
                     },
                     placeholder = {
                         Text(
-                            text = "Required  minimum age for the poll",
+                            text = "Required minimum age for the poll",
                             color = TextOnBackgroundDark,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -401,7 +389,156 @@ public fun create_poll(
                         .padding(top = 20.dp, bottom = 10.dp)
                 ) {
                     Card(modifier = Modifier
-                        .clickable { onCreateButton }
+                        .clickable {
+                            //check for the any empty fields , for the time that is provided for each poll atleast 5 min gap between starting and ending time
+                            if (name.isEmpty() || agenda.isEmpty() || date.isEmpty() || startingTime.isEmpty()
+                                || endingTime.isEmpty() || reqAge.isEmpty()
+                            ) {
+                                Toast
+                                    .makeText(
+                                        context,
+                                        "Please fill all the fields",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
+
+                            } else {
+                                if (startingTime.length != 5 || endingTime.length != 5 ||
+                                    (startingTime
+                                        .substring(0, 2)
+                                        .toInt() > 24 &&
+                                            startingTime
+                                                .substring(0, 2)
+                                                .toInt() < 0 ||
+                                            endingTime
+                                                .substring(0, 2)
+                                                .toInt()> 24  ||
+                                            endingTime
+                                                .substring(0, 2)
+                                                .toInt() < 0 ||
+                                            startingTime
+                                                .substring(3, 5)
+                                                .toInt() > 59  ||
+                                            startingTime
+                                                .substring(3, 5)
+                                                .toInt() < 0  ||
+                                            endingTime
+                                                .substring(3, 5)
+                                                .toInt() > 59  ||
+                                            endingTime
+                                                .substring(3, 5)
+                                                .toInt() < 0)
+                                ) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "Please enter time in 24hr format eg.(15:30)",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                }
+                                if (date.length != 10 || allSingeltonObjects.helperFunctions.convertDateToUnix(
+                                        date
+                                    ) == 0L
+                                ) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "Please date in dd/mm/yyyy format eg.(15/11/2024)",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                }
+                                if (reqAge.toInt() < 0 || reqAge.toInt() > 120) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "Please enter valid age",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+
+                                }
+                                if (
+                                    allSingeltonObjects.helperFunctions.convertDateTimeToUnix(
+                                        date,
+                                        startingTime
+                                    ) == 0L ||
+                                    allSingeltonObjects.helperFunctions.convertDateTimeToUnix(
+                                        date,
+                                        endingTime
+                                    ) == 0L ||
+                                    allSingeltonObjects.helperFunctions.convertDateTimeToUnix(
+                                        date,
+                                        startingTime
+                                    ) + 300000 > allSingeltonObjects.helperFunctions.convertDateTimeToUnix(
+                                        date,
+                                        endingTime
+                                    )
+                                ) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "Please have atleast 5 min difference between starting and ending time",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                }
+
+                                // checked for all the anomolies and now we can create the poll
+                                Log.d(
+                                    "aadharNO",
+                                    "${
+                                        allSingeltonObjects.profileViewModel.aadharNo.value
+                                            .toString()
+                                            .toDouble()
+                                    }"
+                                )
+                                Log.d(
+                                    "noOfPollCreated",
+                                    "${allSingeltonObjects.profileViewModel.noOfPollCreated.value.toLong()}"
+                                )
+                                allSingeltonObjects.profileViewModel.setNoOfPollCreated(allSingeltonObjects.profileViewModel.noOfPollCreated.value +1)
+                                allSingeltonObjects.referenceToUsers.child(allSingeltonObjects.profileViewModel.aadharNo.value).child("noOfPollCreated").setValue(allSingeltonObjects.profileViewModel.noOfPollCreated.value)
+
+                                val pollIdGet =
+                                    allSingeltonObjects.profileViewModel.aadharNo.value.toString() + (
+                                            allSingeltonObjects.profileViewModel.noOfPollCreated.value.toLong()).toString()
+
+                                Log.d("poll Id", "$pollIdGet")
+                                val pollToCreate = Poll(
+                                    _name = name,
+                                    _pollId = pollIdGet,
+                                    _pollCreatedBy = allSingeltonObjects.profileViewModel.aadharNo.value,
+                                    _agendaOfPoll = agenda,
+                                    _eligibleVoterAge = reqAge.toInt(),
+                                    _startTime = allSingeltonObjects.helperFunctions.convertDateTimeToUnix(
+                                        date,
+                                        startingTime
+                                    ),
+                                    _endTime = allSingeltonObjects.helperFunctions.convertDateTimeToUnix(
+                                        date,
+                                        endingTime
+                                    )
+                                )
+                                allSingeltonObjects.createPollViewModel = createPollViewModel()
+                                allSingeltonObjects.createPollViewModel.createPoll(
+                                    context,
+                                    pollToCreate
+                                )
+                                // updating all the firebase table are done by createPollViewModel and Web3jDataModel
+
+                                Toast
+                                    .makeText(
+                                        context,
+                                        "Poll created successfully",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
+                                navController.popBackStack()
+
+                            }
+                        }
                         .size(height = 60.dp, width = 250.dp),
                         shape = RoundedCornerShape(20.dp),
                         elevation = CardDefaults.cardElevation(
@@ -435,7 +572,7 @@ public fun create_poll(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Card(modifier = Modifier
-                    .clickable { onPrevVoteButton }
+                    .clickable { navController.navigate("prevPollUserParticipated") }
                     .size(height = 60.dp, width = 200.dp),
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(width = 2.dp, color = CardBorderDark),
@@ -466,7 +603,7 @@ public fun create_poll(
                     Modifier
                         .padding(end = 30.dp)
                         .size(50.dp)
-                        .clickable { onProfileButton }
+                        .clickable { navController.navigate("profile") }
 
                 )
 

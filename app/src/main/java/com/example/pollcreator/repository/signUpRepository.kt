@@ -23,14 +23,14 @@ interface signUpRepository{
     suspend fun registerUser( user : UserOrAdmin) : Boolean   // take the input of a user and make changes in the database
 
     suspend fun registerAdmin(user: UserOrAdmin):Boolean // take the input of a Admin and make the changes in the database
-    suspend fun signInAdmin(aadharNo: Long, password: String, pan: String?): Boolean   // take the input as aadharNo and pan and password and verify
-    suspend fun signInUser(aadharNo: Long, password: String): Boolean   // take the input as aadharNo and password and verify)
+    suspend fun signInAdmin(aadharNo: String, password: String, pan: String?): Boolean   // take the input as aadharNo and pan and password and verify
+    suspend fun signInUser(aadharNo: String, password: String): Boolean   // take the input as aadharNo and password and verify)
     //  suspend fun changePassword(aadharNo: Long , oldPassword : String , newPassword : String) : Boolean
          // implement this function later
     suspend fun checkCurrentUser() : FirebaseUser?
     suspend fun logout()
 
-    suspend fun getUserDetails(aadharNo: Long) : UserOrAdmin?
+    suspend fun getUserDetails(aadharNo: String) : UserOrAdmin?
 
 
 }

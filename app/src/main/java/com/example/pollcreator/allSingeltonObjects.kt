@@ -1,8 +1,11 @@
 package com.example.pollcreator
 
+import androidx.compose.runtime.remember
+import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.onlineStorage.fireBaseDataModel
 import com.example.pollcreator.additionalFunctions.helperFunctions
 import com.example.pollcreator.onlineStorage.web3jDataModel
+import com.example.pollcreator.viewModel.createPollViewModel
 import com.example.pollcreator.viewModel.pollViewModel
 import com.example.pollcreator.viewModel.privateKeyViewModel
 import com.example.pollcreator.viewModel.profileViewModel
@@ -35,13 +38,20 @@ object allSingeltonObjects {
 
     val contractAddress = "0xe63df052e96c7AB378769121288664A1A6F94EEC"
 
-    val privateKeyViewModelObject = privateKeyViewModel()
+    var privateKeyViewModelObject = privateKeyViewModel()
+
+    fun checkWeb3j(): Boolean {
+        return (::web3jDataModel.isInitialized)
+    }
 
     val ytShowPrivateKeyUrl = "https://youtu.be/Kd4Wfjgixps?si=o3xhqTSMd6GebMbU"
 
     lateinit var  web3jDataModel : web3jDataModel
 
     lateinit var pollViewModel: pollViewModel
+
+    lateinit var createPollViewModel: createPollViewModel
+
 
 
 }

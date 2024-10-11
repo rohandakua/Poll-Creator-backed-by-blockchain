@@ -3,10 +3,10 @@ package com.example.pollcreator.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.screens.admin_dashboard
 import com.example.pollcreator.screens.admin_registration
 import com.example.pollcreator.screens.change_password_screen
@@ -17,6 +17,7 @@ import com.example.pollcreator.screens.login_register
 import com.example.pollcreator.screens.participate_in_a_poll_as_participants
 import com.example.pollcreator.screens.participate_in_poll_confirmation
 import com.example.pollcreator.screens.list_of_poll
+import com.example.pollcreator.screens.participate_details
 import com.example.pollcreator.screens.poll_result
 import com.example.pollcreator.screens.profile
 import com.example.pollcreator.screens.show_candidate_list
@@ -25,24 +26,21 @@ import com.example.pollcreator.screens.splash_screen
 import com.example.pollcreator.screens.success_screen
 import com.example.pollcreator.screens.two_centre_button
 import com.example.pollcreator.viewModel.signInViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 
 @Composable
-fun navController(modifier: Modifier = Modifier,viewModel: signInViewModel) {
+fun navControllerFunction(modifier: Modifier = Modifier, viewModel: signInViewModel) {
     val navController = rememberNavController()
+    val context = LocalContext.current
 
-    NavHost(navController = navController, startDestination = "splashScreen", builder = {
+    NavHost(navController = navController, startDestination = "splashScreen") {
 
         composable("splashScreen"){
             splash_screen(navController=navController)
         }
         composable("userOrAdmin"){
             LaunchedEffect(true) {
-                viewModel.logout()
+                viewModel.logout(context)
             }
             two_centre_button(navController=navController)     // implement btn1Click and btn2Click
         }
@@ -109,6 +107,9 @@ fun navController(modifier: Modifier = Modifier,viewModel: signInViewModel) {
         composable("activePollAdminCreated"){
             list_of_poll(navController=navController, method = "active_poll_admin_created", heading = "Active Polls" , subHeading = "created by you")
         }
+        composable("participate_details"){
+            participate_details(navController = navController)
+        }
 
         composable("participateInAPollAsParticipant"){
             participate_in_a_poll_as_participants(navController=navController)
@@ -116,13 +117,13 @@ fun navController(modifier: Modifier = Modifier,viewModel: signInViewModel) {
         composable("participateInAPollConfirmation"){
             participate_in_poll_confirmation(navController=navController)
         }
-        composable("show_candidate_list"){
+        composable("showCandidateList"){
             show_candidate_list(navController=navController)
         }
-        composable("show_candidate_list_for_vote"){
+        composable("showCandidateListForVote"){
             show_candidate_list_for_vote(navController=navController)
         }
-        composable("poll_result"){
+        composable("pollResult"){
             poll_result(navController=navController)
         }
 
@@ -130,6 +131,6 @@ fun navController(modifier: Modifier = Modifier,viewModel: signInViewModel) {
 
 
 
-    })
+    }
     
 }

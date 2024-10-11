@@ -1,6 +1,7 @@
 package com.example.pollcreator.screens
 
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -39,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,7 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
 import com.example.pollcreator.allSingeltonObjects
@@ -62,21 +64,18 @@ import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
+
 @Composable
 public fun show_candidate_list_for_vote(
     modifier: Modifier = Modifier,
-    onPrevVoteButton: () -> Unit = {},
-    callDialog: () -> Unit = {},
-    onFailBtn: () -> Unit = {},
-    onProfileButton: () -> Unit = {},
-    poll_title: String = "National Elections",
-    currentPassword: String = "",
-    aadharno1: Long = 333335555555,
-    navController: NavHostController = rememberNavController()
+    navController: NavController
 ) {
 
     val context = LocalContext.current
@@ -86,18 +85,11 @@ public fun show_candidate_list_for_vote(
     var passwordVisible by remember { mutableStateOf(false) }
 
     var selectedCandidateAadhar by remember {
-        mutableStateOf<Long?>(null)
+        mutableStateOf<String>("")
     }
 
-    var poll = allSingeltonObjects.profileViewModel.getPollItem() ?: Poll(
-        _pollId = 123412341234.12,
-        _pollCreatedBy = 123412341234,
-        _agendaOfPoll = "pollAgenda",
-        _eligibleVoterAge = 20,
-        _startTime = 1633036800000,
-        _endTime = 1633036899999
-    )
-    var listOfCandidates = poll._listOfCandidate
+    var poll = allSingeltonObjects.pollViewModel.getDetailsOfPoll()
+    var listOfCandidates = allSingeltonObjects.pollViewModel.getCandidateList()
     var isPollOngoing =
         if (allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date()) > poll._startTime && allSingeltonObjects.helperFunctions.convertToUnixTimestamp(
                 Date()
@@ -155,14 +147,8 @@ public fun show_candidate_list_for_vote(
 
             each_poll_item_upcoming_poll(
                 modifier = Modifier.height(180.dp),
-                pollItem = allSingeltonObjects.profileViewModel.getPollItem() ?: Poll(
-                    _pollId = 123412341234.12,
-                    _pollCreatedBy = 123412341234,
-                    _agendaOfPoll = "pollAgenda",
-                    _eligibleVoterAge = 20,
-                    _startTime = 1633036800000,
-                    _endTime = 1633036899999
-                )
+                pollItem = allSingeltonObjects.profileViewModel.getPollItem()?: Poll(),
+                navController = navController
             )
 
 
@@ -180,18 +166,25 @@ public fun show_candidate_list_for_vote(
 
                 LazyColumn {
                     items(listOfCandidates) { item ->
-                        RadioButton(
-                            selected = selectedCandidateAadhar == item.candidate._aadharNo,
-                            onClick = { selectedCandidateAadhar = item.candidate._aadharNo },
+                        Row (modifier = Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
 
-                            colors = RadioButtonColors(
-                                selectedColor = Color.White,
-                                unselectedColor = Color.Black,
-                                disabledUnselectedColor = Color.Transparent,
-                                disabledSelectedColor = Color.White
+
+                            RadioButton(
+                                selected = selectedCandidateAadhar == item.candidate._aadharNo,
+                                onClick = { selectedCandidateAadhar = item.candidate._aadharNo },
+
+                                colors = RadioButtonColors(
+                                    selectedColor = Color.White,
+                                    unselectedColor = Color.Black,
+                                    disabledUnselectedColor = Color.Transparent,
+                                    disabledSelectedColor = Color.White
+                                )
                             )
-                        )
-                        each_participant_in_poll_detailed(pollResultObj = item)
+                            each_participant_in_poll_detailed(
+                                pollResultObj = item,
+                                navController = navController
+                            )
+                        }
 
                     }
 
@@ -268,7 +261,8 @@ public fun show_candidate_list_for_vote(
 
                     Card(modifier = Modifier
                         .clickable {
-                            if (allSingeltonObjects.profileViewModel.password.equals(password)) {
+                            Log.d("password", allSingeltonObjects.signInViewModel.password.value)
+                            if (allSingeltonObjects.signInViewModel.password.value.equals(password)) {
                                 if (selectedCandidateAadhar.toString().length != 12) {
                                     Toast
                                         .makeText(
@@ -281,13 +275,18 @@ public fun show_candidate_list_for_vote(
                                     //make the call to cast vote
                                     allSingeltonObjects.pollViewModel.castVote(
                                         aadharNoOfCandidate = selectedCandidateAadhar
-                                            ?: 123412341234,
+                                            ?: "123412341234",
                                         gender = allSingeltonObjects.profileViewModel.gender.value.toString()
                                             ?: "male",
-                                        aadharNoOfVoter = allSingeltonObjects.profileViewModel.aadharNo.value.toLong(),
+                                        aadharNoOfVoter = allSingeltonObjects.profileViewModel.aadharNo.value,
                                         password = password,
                                         pollId = poll._pollId
                                     )
+                                    Toast.makeText(context,"Processing your vote , this can take a minute",Toast.LENGTH_SHORT).show()
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        delay(1000)
+                                        navController.popBackStack()
+                                    }
                                 }
 
 
@@ -372,7 +371,7 @@ public fun show_candidate_list_for_vote(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Card(modifier = Modifier
-                    .clickable { onPrevVoteButton }
+                    .clickable { navController.navigate("prevPollUserParticipated") }
                     .size(height = 60.dp, width = 200.dp),
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(width = 2.dp, color = CardBorderDark),

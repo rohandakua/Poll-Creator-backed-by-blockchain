@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.dataclass.Candidate
@@ -32,15 +33,14 @@ import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 
 
-@Preview(device = "spec:width=450dp,height=150dp,dpi=480")
 @Composable
 public fun each_participant_in_poll_detailed(
     modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController(),
+    navController: NavController ,
     pollResultObj: PollResultObj=PollResultObj(
         candidate = Candidate(
-            _pollId = 100110011001.1001,
-            100110011001,
+            _pollId = "1001100110011",
+            "100110011001",
             20,
             Gender.MALE,
             1000000,

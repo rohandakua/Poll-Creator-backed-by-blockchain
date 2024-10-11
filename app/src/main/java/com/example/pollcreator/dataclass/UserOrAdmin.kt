@@ -3,14 +3,15 @@ package com.example.pollcreator.dataclass
 import android.util.Log
 
 data class UserOrAdmin(
-    val _aadharNo: Long=0,
+    val _aadharNo: String="",
     var _password: String="",
     val _gender: Gender = Gender.MALE,
     val _age: Int =0,
     val _name: String="",
     val adminOrNot : Boolean?=true,
     val pan : String? = null,
-    val noOfPollCreated : Int?=0
+    val noOfPollCreated : Int?=0,
+    val _isRegisteredInBC:Boolean=false
 )
 //{
 //

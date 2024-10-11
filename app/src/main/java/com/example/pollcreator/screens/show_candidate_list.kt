@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
@@ -64,19 +65,13 @@ import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
 public fun show_candidate_list(
     modifier: Modifier = Modifier,
-    onPrevVoteButton: () -> Unit = {},
     callDialog: () -> Unit = {},
     onFailBtn: () -> Unit = {},
-    onProfileButton: () -> Unit = {},
-    poll_title: String = "National Elections",
-    currentPassword: String = "",
     isPollOngoing: Boolean =false,
-    aadharno1: Long = 333335555555,
-    navController: NavHostController = rememberNavController()
+    navController: NavController
 ) {
 
     val context = LocalContext.current
@@ -88,17 +83,10 @@ public fun show_candidate_list(
     var passwordVisible by remember { mutableStateOf(false) }
 
     var selectedCandidateAadhar by remember {
-        mutableStateOf<Long?>(null)
+        mutableStateOf<String>("")
     }
-    var poll = allSingeltonObjects.profileViewModel.getPollItem()?: Poll(
-        _pollId = 123412341234.12,
-        _pollCreatedBy = 123412341234,
-        _agendaOfPoll = "pollAgenda",
-        _eligibleVoterAge = 20,
-        _startTime = 1633036800000,
-        _endTime = 1633036899999
-    )
-    var listOfCandidates = poll._listOfCandidate
+    var poll = allSingeltonObjects.pollViewModel.getDetailsOfPoll()
+    var listOfCandidates = allSingeltonObjects.pollViewModel.getCandidateList()
 
     Box(
         modifier = modifier
@@ -149,7 +137,7 @@ public fun show_candidate_list(
                 )
             }
 
-           each_poll_item_upcoming_poll(modifier = Modifier.height(180.dp), pollItem = poll)
+           each_poll_item_upcoming_poll(modifier = Modifier.height(180.dp), pollItem = poll, navController = navController)
 
 
 
@@ -163,12 +151,11 @@ public fun show_candidate_list(
                 border = BorderStroke(width = 2.dp, color = TextOnBackgroundDark)
             ) {
                 Card(
-                    Modifier.verticalScroll(rememberScrollState()),
                     colors = CardDefaults.elevatedCardColors(containerColor = Color.Transparent)
                 ) {
                     LazyColumn {
                         items(listOfCandidates){ item->
-                            each_participant_in_poll_detailed(pollResultObj = item)
+                            each_participant_in_poll_detailed(pollResultObj = item, navController = navController)
                         }
                     }
                 }
@@ -285,7 +272,7 @@ public fun show_candidate_list(
                         Box(
                             modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                         ) {
-                            Toast.makeText(context,"The Poll is not Active Now",Toast.LENGTH_LONG).show()
+                            //Toast.makeText(context,"The Poll is not Active Now",Toast.LENGTH_LONG).show()
                             Text(
                                 text = "Come back Later",                           // add here a dialog box for confirmation
                                 style = MaterialTheme.typography.bodyLarge,
@@ -312,7 +299,7 @@ public fun show_candidate_list(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Card(modifier = Modifier
-                    .clickable { onPrevVoteButton }
+                    .clickable { navController.navigate("prevPollUserParticipated") }
                     .size(height = 60.dp, width = 200.dp),
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(width = 2.dp, color = CardBorderDark),
@@ -343,7 +330,7 @@ public fun show_candidate_list(
                     Modifier
                         .padding(end = 30.dp)
                         .size(50.dp)
-                        .clickable { onProfileButton }
+                        .clickable { navController.navigate("profile") }
 
                 )
 

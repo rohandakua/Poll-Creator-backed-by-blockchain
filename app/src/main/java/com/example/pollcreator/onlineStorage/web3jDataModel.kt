@@ -5,7 +5,9 @@ import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.contract.PollCreator
 import com.example.pollcreator.dataclass.Candidate
 import com.example.pollcreator.dataclass.Event
+import com.example.pollcreator.dataclass.Gender
 import com.example.pollcreator.dataclass.Poll
+import com.example.pollcreator.dataclass.PollResultObj
 import com.example.pollcreator.dataclass.UserOrAdmin
 import com.example.pollcreator.repository.web3jRepository
 import kotlinx.coroutines.CoroutineScope
@@ -67,18 +69,23 @@ class web3jDataModel() : web3jRepository {
 
 
     override suspend fun createPoll(poll: Poll): Event {
-        if (allSingeltonObjects.profileViewModel.isAdmin.value) {
+        if (true) {//allSingeltonObjects.profileViewModel.isAdmin.value
             // creating the poll in web3j
             try {
                 val receipt = contract.createPoll(
-                    BigInteger("${poll._pollId}"),
+                    BigInteger(poll._pollId.toString()),
                     poll._agendaOfPoll,
-                    BigInteger("${poll._startTime.toString()}"),
-                    BigInteger("${poll._endTime.toString()}"),
-                    BigInteger("${poll._eligibleVoterAge.toString()}"),
-                    BigInteger("${allSingeltonObjects.profileViewModel.aadharNo.toString()}")
+                    BigInteger(poll._startTime.toString()),
+                    BigInteger(poll._endTime.toString()),
+                    BigInteger(poll._eligibleVoterAge.toString()),
+                    BigInteger(allSingeltonObjects.profileViewModel.aadharNo.value)
                 ).sendAsync()
                 receipt.await()
+
+                // adding this to users in firebase
+                Log.d("no of poll","${poll._pollId.substring(12).toInt()}")
+                allSingeltonObjects.referenceToUsers.child(allSingeltonObjects.profileViewModel.aadharNo.value).child("noOfPollCreated").setValue(poll._pollId.substring(12).toInt())
+
                 Log.d("receipt", receipt.toString())
                 return Event.SUCCESS
             } catch (e: Exception) {
@@ -96,19 +103,52 @@ class web3jDataModel() : web3jRepository {
 
     // candidateIdInput is the index of the candidate in the list of candidate of the poll
     override suspend fun castVote(
-        pollid: Double,
-        aadharNoOfCandidate: Long,
+        pollid: String,
+        aadharNoOfCandidate: String,
         gender: String,
-        aadharNoOfVoter: Long
+        aadharNoOfVoter: String
     ): Event {
         // adding the vote to blockchain
+        Log.d("pollid",pollid)
+        Log.d("aadharNoOfCandidate",aadharNoOfCandidate)
         try {
             val receipt = contract.castVote(
-                BigInteger("${pollid.toString()}"),  //  find the index of the candidate in the list of candidate of the poll
+                BigInteger("${pollid}"),  //  find the index of the candidate in the list of candidate of the poll
                 BigInteger("${aadharNoOfCandidate.toString()}"),
                 BigInteger("${aadharNoOfVoter.toString()}")
             ).sendAsync()
             receipt.await()
+
+
+            // adding the aadhar no of the Voter to the list of voter who have voted
+            allSingeltonObjects.referenceToPolls.child("${pollid}").child("_listOfVoterWhoHaveVoted")
+                .push().setValue(aadharNoOfVoter).await()
+            // adding a vote to gender wise list
+            if (gender == "male") {
+                allSingeltonObjects.referenceToPolls.child("${pollid}").child("_noOfMaleVoter")
+                    .setValue(
+                        allSingeltonObjects.referenceToPolls.child("${pollid}")
+                            .child("_noOfMaleVoter").get().await().value.toString().toLong() + 1
+                    ).await()
+            } else {
+                allSingeltonObjects.referenceToPolls.child("${pollid}").child("_noOfFemaleVoter")
+                    .setValue(
+                        allSingeltonObjects.referenceToPolls.child("${pollid}")
+                            .child("_noOfFemaleVoter").get().await().value.toString().toLong() + 1
+                    ).await()
+            }
+
+
+            //adding the vote to the pollresultobject
+            allSingeltonObjects.referenceToPolls.child("${pollid}").child("_listOfPollResult")
+                .child("${aadharNoOfCandidate}").child("noOfVote")
+                .setValue(
+                    allSingeltonObjects.referenceToPolls.child("${pollid}").child("_listOfPollResult")
+                        .child("${aadharNoOfCandidate}")
+                        .child("noOfVote").get().await().value.toString().toLong() + 1
+                ).await()
+
+
             Log.d("receipt", receipt.toString())
         } catch (e: Exception) {
             Log.d("castVote", e.toString())
@@ -116,48 +156,57 @@ class web3jDataModel() : web3jRepository {
         }
 
 
-        // adding the aadhar no of the Voter to the list of voter who have voted
-        allSingeltonObjects.referenceToPolls.child("${pollid}").child("_listOfVoterWhoHaveVoted")
-            .push().setValue(aadharNoOfVoter).await()
-        // adding a vote to gender wise list
-        if (gender == "male") {
-            allSingeltonObjects.referenceToPolls.child("${pollid}").child("_noOfMaleVoter")
-                .setValue(
-                    allSingeltonObjects.referenceToPolls.child("${pollid}")
-                        .child("_noOfMaleVoter").get().await().value.toString().toLong() + 1
-                ).await()
-        } else {
-            allSingeltonObjects.referenceToPolls.child("${pollid}").child("_noOfFemaleVoter")
-                .setValue(
-                    allSingeltonObjects.referenceToPolls.child("${pollid}")
-                        .child("_noOfFemaleVoter").get().await().value.toString().toLong() + 1
-                ).await()
-        }
-        //adding the vote to the pollresultobject
-        allSingeltonObjects.referenceToPolls.child("${pollid}").child("_listOfPollResult")
-            .child("${aadharNoOfCandidate}").child("noOfVote")
-            .setValue(
-                allSingeltonObjects.referenceToPolls.child("${pollid}").child("_listOfPollResult")
-                    .child("${aadharNoOfCandidate}")
-                    .child("noOfVote").get().await().value.toString().toLong() + 1
-            ).await()
+
 
 
         return Event.SUCCESS
 
     }
 
-    override suspend fun getAllPollCreatedByAdmin(aadharNoOfAdmin: Long): List<Poll> {
+    override suspend fun getAllPollCreatedByAdmin(aadharNoOfAdmin: String): List<Poll> {
         var pollList: MutableList<Poll> = mutableListOf()
         val snapShot = allSingeltonObjects.referenceToPolls.get().await()
         for (poll in snapShot.children) {
             val pollTemp = poll.getValue(Poll::class.java)
-            if (pollTemp != null && pollTemp._pollCreatedBy.toLong()==aadharNoOfAdmin) {
+            if (pollTemp != null && pollTemp._pollCreatedBy==aadharNoOfAdmin) {
                 pollList.add(pollTemp)
             }
 
         }
         pollList.sortByDescending { it._startTime }   // giving the value in descending order by startTime
+        return pollList
+
+    }suspend fun getPrevPollCreatedByAdmin(aadharNoOfAdmin: String): List<Poll> {
+        var pollList: MutableList<Poll> = mutableListOf()
+        val snapShot = allSingeltonObjects.referenceToPolls.get().await()
+        for (poll in snapShot.children) {
+            val pollTemp = poll.getValue(Poll::class.java)
+            if (pollTemp != null && pollTemp._pollCreatedBy==aadharNoOfAdmin &&
+                allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date()) >pollTemp._endTime) {
+                pollList.add(pollTemp)
+            }
+
+        }
+        pollList.sortByDescending { it._startTime }   // giving the value in descending order by startTime
+        println(pollList)
+        return pollList
+
+    }
+    suspend fun getPollThatAdminCanPartiticipate(aadharNoOfAdmin:String): List<Poll> {
+        var pollList: MutableList<Poll> = mutableListOf()
+        val snapShot = allSingeltonObjects.referenceToPolls.get().await()
+        for (poll in snapShot.children) {
+            val pollTemp = poll.getValue(Poll::class.java)
+            if (pollTemp != null &&
+                pollTemp._eligibleVoterAge<=allSingeltonObjects.signInViewModel.age.value.toInt() &&
+                allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())<=pollTemp._startTime) {
+                pollList.add(pollTemp)
+            }
+
+
+        }
+        pollList.sortByDescending { it._startTime }   // giving the value in descending order by startTime
+        println(pollList)
         return pollList
 
     }
@@ -170,8 +219,7 @@ class web3jDataModel() : web3jRepository {
         for (poll in snapShot.children) {
             val pollTemp = poll.getValue(Poll::class.java)
             pollTemp?.let {
-                if (pollTemp._eligibleVoterAge <= age && allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date()) <= (pollTemp._startTime)
-                    && allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())<=pollTemp._endTime
+                if (pollTemp._eligibleVoterAge <= age && allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())<=pollTemp._endTime
                 ) {
                     pollList.add(pollTemp)
                 }
@@ -184,7 +232,7 @@ class web3jDataModel() : web3jRepository {
 
     //allSingeltonObjects.referenceToPolls.child("${pollid}").child("_listOfVoterWhoHaveVoted")
 //            .push().setValue(aadharNoOfVoter).await()
-    override suspend fun getPreviousPoll(aadharNoOfVoter: Long): List<Poll> {
+    override suspend fun getPreviousPoll(aadharNoOfVoter: String): List<Poll> {
         var pollList: MutableList<Poll> = mutableListOf()
         val snapShot = allSingeltonObjects.referenceToPolls.get().await()
         for (poll in snapShot.children) {
@@ -199,7 +247,7 @@ class web3jDataModel() : web3jRepository {
     }
 
     override suspend fun becomeCandidateOfPoll(candidate: Candidate): Event {
-        /*pollid: Double,
+        /*pollid: String,
         aadharNoOfAdmin: Long,
         age: Int,
         agendaOfPoll: String
@@ -212,17 +260,28 @@ class web3jDataModel() : web3jRepository {
                 BigInteger("${candidate._age.toString()}")
             ).sendAsync()
             receipt.await()
+            allSingeltonObjects.referenceToPolls.child("${candidate._pollId}").child("_listOfCandidate")
+                .child("${candidate._aadharNo}").setValue(PollResultObj(candidate,0L)).await()
+            // inserting in the list of candidate of the poll
+            // poll id -> { , , , , _listOfPoll -> { candidate_aadharNo -> candidate } }
+
+            // adding the pollId in alladmin in firebase
+            if(candidate._gender==Gender.MALE){
+                allSingeltonObjects.referenceToPolls.child(candidate._pollId).child("_noOfMaleVoter").setValue(allSingeltonObjects.referenceToPolls.child(candidate._pollId).child("_noOfMaleVoter").get().await().value.toString().toLong()+1).await()
+            }else{
+                allSingeltonObjects.referenceToPolls.child(candidate._pollId).child("_noOfFemaleVoter").setValue(allSingeltonObjects.referenceToPolls.child(candidate._pollId).child("_noOfFemaleVoter").get().await().value.toString().toLong()+1).await()
+
+            }
+
+            allSingeltonObjects.referenceToAllAdmins.child("${allSingeltonObjects.profileViewModel.aadharNo.value}").child("_pollsCreated").push().setValue(candidate._pollId).await()
             Log.d("receipt", receipt.toString())
+
 
 
         } catch (e: Exception) {
             Log.d("receipt", e.toString())
             return Event.FAILURE
         }
-        allSingeltonObjects.referenceToPolls.child("${candidate._pollId}").child("_listOfCandidate")
-            .child("${candidate._aadharNo}").setValue(candidate).await()
-        // inserting in the list of candidate of the poll
-        // poll id -> { , , , , _listOfPoll -> { candidate_aadharNo -> candidate } }
 
         return Event.SUCCESS
 
@@ -230,26 +289,57 @@ class web3jDataModel() : web3jRepository {
     }
 
     override suspend fun becomeVoter(userOrAdmin: UserOrAdmin): Event {
-        //aadharNo: Long, age: Int
-        try {
+        return try {
+            // Call the contract's createVoter function
             val receipt = contract.createVoter(
-                BigInteger("${userOrAdmin._aadharNo.toString()}"),
-                BigInteger("${userOrAdmin._age.toString()}")
-            ).sendAsync()
-            receipt.await()
-            Log.d("receipt", receipt.toString())
+                BigInteger(userOrAdmin._aadharNo.toString()),
+                BigInteger(userOrAdmin._age.toString())
+            ).sendAsync().await()  // Wait for the transaction to be completed
+
+            // Check the transaction status
+            if (receipt.status == "0x1") {
+                // Transaction was successful
+
+                // Adding the userOrAdmin to Firebase Realtime Database in allvoters
+                allSingeltonObjects.referenceToAllVoters
+                    .child("${userOrAdmin._aadharNo}")
+                    .setValue(userOrAdmin).await()
+
+                Log.d("receipt", "Transaction successful: $receipt")
+                Event.SUCCESS
+            } else {
+                // Transaction failed
+                Log.d("receipt", "Transaction failed: $receipt")
+                Event.FAILURE
+            }
 
         } catch (e: Exception) {
-            Log.d("receipt", e.toString())
-            return Event.FAILURE
-
+            Log.e("receipt", "Error: ${e.message}")
+            Event.FAILURE
         }
-        // adding the useroradmin to the firebase realtime database in allvoters
-        allSingeltonObjects.referenceToAllVoters.child("${userOrAdmin._aadharNo}")
-            .setValue(userOrAdmin).await()
-        // aadharNo->UserOrAdmin
 
-        return Event.SUCCESS
+//        //aadharNo: Long, age: Int
+//        try {
+//            val receipt = contract.createVoter(
+//                BigInteger("${userOrAdmin._aadharNo.toString()}"),
+//                BigInteger("${userOrAdmin._age.toString()}")
+//            ).sendAsync()
+//            receipt.await()
+//
+//            // adding the useroradmin to the firebase realtime database in allvoters
+//            allSingeltonObjects.referenceToAllVoters.child("${userOrAdmin._aadharNo}")
+//                .setValue(userOrAdmin).await()
+//            // aadharNo->UserOrAdmin
+//            Log.d("receipt", receipt.toString())
+//
+//        } catch (e: Exception) {
+//            Log.d("receipt", e.toString())
+//            return Event.FAILURE
+//
+//        }
+//
+//
+//        return Event.SUCCESS
     }
 
     override suspend fun becomeAdmin(userOrAdmin: UserOrAdmin): Event {
@@ -260,19 +350,20 @@ class web3jDataModel() : web3jRepository {
                 BigInteger("${userOrAdmin._age.toString()}")
             ).sendAsync()
             receipt.await()
+            // add the useroradmin to the firebase realtime database in alladmins
+            allSingeltonObjects.referenceToAllAdmins.child("${userOrAdmin._aadharNo}")
+                .setValue(userOrAdmin).await()
+            // aadharNo->UserOrAdmin
+            // adding the Same in allvoters list also
+            allSingeltonObjects.referenceToAllVoters.child("${userOrAdmin._aadharNo}")
+                .setValue(userOrAdmin).await()
             Log.d("receipt", receipt.toString())
         } catch (e: Exception) {
             Log.d("receipt", e.toString())
             return Event.FAILURE
 
         }
-        // add the useroradmin to the firebase realtime database in alladmins
-        allSingeltonObjects.referenceToAllAdmins.child("${userOrAdmin._aadharNo}")
-            .setValue(userOrAdmin).await()
-        // aadharNo->UserOrAdmin
-        // adding the Same in allvoters list also
-        allSingeltonObjects.referenceToAllVoters.child("${userOrAdmin._aadharNo}")
-            .setValue(userOrAdmin).await()
+
 
 
         return Event.SUCCESS
@@ -285,6 +376,9 @@ class web3jDataModel() : web3jRepository {
                 BigInteger("${userOrAdmin._aadharNo.toString()}")
             ).sendAsync()
             receipt.await()
+            // deleting the UserOrAdmin from the firebase realtime database in alladmins
+            allSingeltonObjects.referenceToAllAdmins.child("${userOrAdmin._aadharNo}").removeValue()
+                .await()
             Log.d("receipt", receipt.toString())
 
 
@@ -293,9 +387,7 @@ class web3jDataModel() : web3jRepository {
             return Event.FAILURE
 
         }
-        // deleting the UserOrAdmin from the firebase realtime database in alladmins
-        allSingeltonObjects.referenceToAllAdmins.child("${userOrAdmin._aadharNo}").removeValue()
-            .await()
+
 
 
         return Event.SUCCESS

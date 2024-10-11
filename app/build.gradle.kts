@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.runtime.livedata)
     kapt("com.google.dagger:hilt-android-compiler:2.44")
     // FirebaseUI for Firebase Auth
     implementation ("com.firebaseui:firebase-ui-auth:8.0.2")

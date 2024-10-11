@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.allSingeltonObjects
@@ -35,20 +36,16 @@ import com.example.pollcreator.viewModel.pollViewModel
 import java.util.Date
 
 
-@Preview(device = "spec:width=450dp,height=150dp,dpi=480",
-showBackground = true,
-apiLevel = 33 // or any lower API level, such as 33 or 32
-)
 @Composable
 public fun each_poll_item_participate(
     modifier: Modifier = Modifier,
 
     onClick : ()->Unit = {},
     pollId:Double=100020003000.1,
-    navController: NavHostController = rememberNavController(),
+    navController: NavController,
     pollItem : Poll = Poll(
-        _pollId = 123412341234.12,
-        _pollCreatedBy = 123412341234,
+        _pollId = "1001100110011",
+        _pollCreatedBy = "123412341234",
         _agendaOfPoll = "pollAgenda",
         _eligibleVoterAge = 20,
         _startTime = 1633036800000,
@@ -63,8 +60,6 @@ public fun each_poll_item_participate(
 
     // making changes in the profileViewModel for storing the poll Item
     allSingeltonObjects.profileViewModel.setPollItem(pollItem)
-    //making changes in the pollViewModel
-    allSingeltonObjects.pollViewModel = pollViewModel(pollItem._pollId)
 
 
 
@@ -75,25 +70,9 @@ public fun each_poll_item_participate(
     ) {
         Card(
             modifier = Modifier.clickable {
-                // check for the time and then decide what to do
-                val currentTime : Long = allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())
-                if(currentTime<pollItem._startTime){
-                    // this means the poll has no yet been started , route to show_candidate_list
-                    navController.navigate("show_candidate_list")
-
-
-                }else if(currentTime>pollItem._endTime){
-                    // this means the poll has ended  , route to the poll result screen
-                    navController.navigate("poll_result")
-
-                }else{
-                    // the poll is active and the user can vote , route to the show_candidate_list_for_vote
-                    navController.navigate("participateInAPollConfirmation")
-                }
-
-
-
-            }
+                //making changes in the pollViewModel
+                allSingeltonObjects.pollViewModel = pollViewModel(pollItem._pollId)
+                navController.navigate("participate_details")}
                 .fillMaxSize(.96f)
                 .padding(4.dp),
             colors = CardDefaults.elevatedCardColors(containerColor = MainBackground),
@@ -144,7 +123,7 @@ public fun each_poll_item_participate(
                         )
 
                         Text(
-                            text = startTime.substring(13)+" to " + endTime.substring(13),
+                            text = startTime.substring(12)+" to " + endTime.substring(12),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.DarkGray

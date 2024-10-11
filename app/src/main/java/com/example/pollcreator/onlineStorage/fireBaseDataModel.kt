@@ -61,8 +61,7 @@ class fireBaseDataModel : signUpRepository {
         var emailOfUser = "thisis" + user._aadharNo.toString() + "@fakeaadhar.com"
         return try {
             auth.createUserWithEmailAndPassword(emailOfUser, user._password).await()
-            allSingeltonObjects.referenceToUsers.child(user._aadharNo.toString()).setValue(user)
-                .await()
+            allSingeltonObjects.referenceToUsers.child(user._aadharNo.toString()).setValue(user).await()
             // adding the user to allvoters list
             val userVoter = allVoterObj(
                 _aadharNo = user._aadharNo,
@@ -91,7 +90,7 @@ class fireBaseDataModel : signUpRepository {
         }
     }
 
-    override suspend fun signInAdmin(aadharNo: Long, password: String, pan: String?): Boolean {
+    override suspend fun signInAdmin(aadharNo: String, password: String, pan: String?): Boolean {
         val emailOfUser = "thisis" + aadharNo.toString() + "@fakeaadhar.com"
         return try {
             auth.signInWithEmailAndPassword(emailOfUser, password).await()
@@ -116,7 +115,7 @@ class fireBaseDataModel : signUpRepository {
         }
     }
 
-    override suspend fun signInUser(aadharNo: Long, password: String): Boolean {
+    override suspend fun signInUser(aadharNo: String, password: String): Boolean {
 
         val emailOfUser = "thisis" + aadharNo.toString() + "@fakeaadhar.com"
 
@@ -142,7 +141,7 @@ class fireBaseDataModel : signUpRepository {
 
     }
 
-    override suspend fun getUserDetails(aadharNo: Long): UserOrAdmin? {
+    override suspend fun getUserDetails(aadharNo: String): UserOrAdmin? {
         val snapShot = allSingeltonObjects.referenceToUsers.child(aadharNo.toString()).get().await()
         return snapShot.getValue(UserOrAdmin::class.java)
 

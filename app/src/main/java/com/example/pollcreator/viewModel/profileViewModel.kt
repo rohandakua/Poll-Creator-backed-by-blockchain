@@ -5,20 +5,24 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.dataclass.Poll
 import com.example.pollcreator.dataclass.UserOrAdmin
 import com.example.pollcreator.dataclass.allAdminObj
-import com.firebase.ui.auth.data.model.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.Date
+import kotlinx.coroutines.withContext
 
 class profileViewModel : ViewModel() {
+
 
 
     // Private mutable state
@@ -36,7 +40,25 @@ class profileViewModel : ViewModel() {
     private var _isLoading = mutableStateOf(true)
     private var _pollItem = mutableStateOf<Poll?>(null)
 
+    private var _listpm = MutableLiveData<MutableList<Poll>>(mutableListOf())
+
+    val listpm : LiveData<MutableList<Poll>> = _listpm
+    fun addItemTolist(value:Poll){
+        _listpm.value=_listpm.value?.apply { add(value) }
+    }
+
+    fun clearList(){
+        _listpm.value= mutableListOf()
+    }
+
     val isLoading: State<Boolean> get() = _isLoading
+    private var _isRegisteredInBC = mutableStateOf(true)
+
+    // Public immutable state
+    val isRegisteredInBC : State<Boolean> get() = _isRegisteredInBC
+    fun setIsRegisteredInBC(value: Boolean){
+        _isRegisteredInBC.value=value
+    }
 
 
     // Public immutable state
@@ -55,8 +77,8 @@ class profileViewModel : ViewModel() {
 
     fun setPollItem(value:Poll?){
         _pollItem.value=value?: Poll(
-            _pollId = 100010001000.1000,
-            _pollCreatedBy = 100010001000,
+            _pollId = "1000100010001",
+            _pollCreatedBy = "100010001000",
             _agendaOfPoll = "pollAgenda",
             _eligibleVoterAge = 20,
             _startTime = 1633036800000,
@@ -85,7 +107,7 @@ class profileViewModel : ViewModel() {
         _isAdmin.value = value
     }
 
-    fun setAadharNo(value: Long) {
+    fun setAadharNo(value: String) {
         _aadharNo.value = value.toString()
     }
 
@@ -123,24 +145,24 @@ class profileViewModel : ViewModel() {
 
     fun getUserDataFromSharedPrefernce(context: Context){
         val sharedPreferences = context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
-        val aadharNoget = sharedPreferences.getLong("aadharNo",0L)
+        val aadharNoget = sharedPreferences.getString("aadharNo","100010001000")
         val panNoget = sharedPreferences.getString("pan","")
         val passwordget = sharedPreferences.getString("password","")
         val isAdminget = sharedPreferences.getBoolean("isadmin",false)
         if(isAdminget){
             CoroutineScope(Dispatchers.IO).launch {
-                allSingeltonObjects.signInViewModel.setAadharNo(aadharNoget)
+                allSingeltonObjects.signInViewModel.setAadharNo(aadharNoget?: "100010001000")
                 allSingeltonObjects.signInViewModel.setPassword(passwordget?: "")
                 allSingeltonObjects.signInViewModel.setPanNo(panNoget)
                 allSingeltonObjects.profileViewModel.setIsAdmin(true)
-                allSingeltonObjects.signInViewModel.signInAdmin()
+                allSingeltonObjects.signInViewModel.signInAdmin(context)
             }
         }else{
             CoroutineScope(Dispatchers.IO).launch {
-            allSingeltonObjects.signInViewModel.setAadharNo(aadharNoget)
+            allSingeltonObjects.signInViewModel.setAadharNo(aadharNoget?: "100010001000")
             allSingeltonObjects.signInViewModel.setPassword(passwordget?: "")
                 allSingeltonObjects.profileViewModel.setIsAdmin(false)
-            allSingeltonObjects.signInViewModel.signInUser()
+            allSingeltonObjects.signInViewModel.signInUser(context)
                 }
 
         }
@@ -155,19 +177,20 @@ class profileViewModel : ViewModel() {
                 getUserDataFromSharedPrefernce(context)
                 Log.d("reached sharefPref section in get data","")
                 _isLoading.value = true
-                setAadharNo(sharedPreferences.getLong("aadharNo",0L)!!)
+                setAadharNo(sharedPreferences.getString("aadharNo","100010001000")!!)
+                Log.d("aadhar no from shared pref","$aadharNo")
                 setPassword(sharedPreferences.getString("password","")!!)
                 setIsAdmin(sharedPreferences.getBoolean("isadmin",false)!!)
                 setPanNo(sharedPreferences.getString("pan",""))
                 if(_isAdmin.value){
-                    allSingeltonObjects.signInViewModel.setAadharNo(_aadharNo.value.toLong())
+                    allSingeltonObjects.signInViewModel.setAadharNo(_aadharNo.value)
                     allSingeltonObjects.signInViewModel.setPassword(_password.value)
                     allSingeltonObjects.signInViewModel.setPanNo(_panNo.value)
-                    allSingeltonObjects.signInViewModel.signInAdmin()
+                    allSingeltonObjects.signInViewModel.signInAdmin(context)
                 }else{
-                    allSingeltonObjects.signInViewModel.setAadharNo(_aadharNo.value.toLong())
+                    allSingeltonObjects.signInViewModel.setAadharNo(_aadharNo.value)
                     allSingeltonObjects.signInViewModel.setPassword(_password.value)
-                    allSingeltonObjects.signInViewModel.signInUser()
+                    allSingeltonObjects.signInViewModel.signInUser(context)
                 }
                 allSingeltonObjects.signInViewModel.getUserDetails()
                 getCopyOfDetailsFromSignIn()
@@ -176,14 +199,29 @@ class profileViewModel : ViewModel() {
         }
     }
     fun getCopyOfDetailsFromSignIn(){
-        _aadharNo.value = allSingeltonObjects.signInViewModel.aadharNo.value
-        _password.value = allSingeltonObjects.signInViewModel.password.value
-        _panNo.value = allSingeltonObjects.signInViewModel.panNo.value
-        _isAdmin.value = allSingeltonObjects.signInViewModel.isAdmin.value
-        _age.value = allSingeltonObjects.signInViewModel.age.value
-        _gender.value = allSingeltonObjects.signInViewModel.gender.value
-        _name.value = allSingeltonObjects.signInViewModel.name.value
-        _noOfPollCreated.value = allSingeltonObjects.signInViewModel.noOfPollCreated.value
+        CoroutineScope(Dispatchers.IO).launch {
+
+
+            _aadharNo.value = allSingeltonObjects.signInViewModel.aadharNo.value
+            setAadharNo(allSingeltonObjects.signInViewModel.aadharNo.value)
+            _password.value = allSingeltonObjects.signInViewModel.password.value
+            setPassword(allSingeltonObjects.signInViewModel.password.value)
+            _panNo.value = allSingeltonObjects.signInViewModel.panNo.value
+            setPanNo(allSingeltonObjects.signInViewModel.panNo.value)
+            _isAdmin.value = allSingeltonObjects.signInViewModel.isAdmin.value
+            setIsAdmin(allSingeltonObjects.signInViewModel.isAdmin.value)
+            _age.value = allSingeltonObjects.signInViewModel.age.value
+            setAge(allSingeltonObjects.signInViewModel.age.value.toIntOrNull()?: 20)
+            Log.d("age","${age.value.toString()}")
+            _gender.value = allSingeltonObjects.signInViewModel.gender.value
+            setGender(allSingeltonObjects.signInViewModel.gender.value)
+            _name.value = allSingeltonObjects.signInViewModel.name.value
+            setName(allSingeltonObjects.signInViewModel.name.value)
+            _noOfPollCreated.value = allSingeltonObjects.signInViewModel.noOfPollCreated.value
+            setNoOfPollCreated(allSingeltonObjects.signInViewModel.noOfPollCreated.value)
+            _isRegisteredInBC.value = allSingeltonObjects.signInViewModel.isSuccess.value
+            setIsRegisteredInBC(allSingeltonObjects.signInViewModel.isSuccess.value)
+        }
 
     }
     suspend fun changePassword(newpassword: String){
@@ -221,15 +259,29 @@ class profileViewModel : ViewModel() {
         savedPreferences.edit().putBoolean("isadmin",true).apply()
         allSingeltonObjects.signInViewModel.setIsAdmin(true)
         allSingeltonObjects.signInViewModel.setPanNo(pan)
-        allSingeltonObjects.signInViewModel.signInAdmin()
+        allSingeltonObjects.signInViewModel.signInAdmin(context)
         val user = allAdminObj(
-            _aadharNo = allSingeltonObjects.signInViewModel.aadharNo.value.toLong(),
+            _aadharNo = allSingeltonObjects.signInViewModel.aadharNo.value,
             _isRegisteredAsAdmin = true,
             _pollsCreated = mutableListOf(),
             _pollsParticipated = mutableListOf()
         )
         // putting the user in alladmin
         allSingeltonObjects.referenceToAllAdmins.child(allSingeltonObjects.signInViewModel.aadharNo.value).setValue(user).await()
+        try {
+            var userOrAdmin = UserOrAdmin()
+            CoroutineScope(Dispatchers.IO).launch {
+                if(allSingeltonObjects.signInViewModel.aadharNo.value.length==12){
+                    userOrAdmin = allSingeltonObjects.signInViewModel.getUserDetailsUser()
+                }
+            }
+            allSingeltonObjects.web3jDataModel.becomeAdmin(
+                userOrAdmin = userOrAdmin
+            )
+
+        }catch (e :Exception){
+            Log.d("profileViewModel","web3j $e")
+        }
         allSingeltonObjects.referenceToAllVoters.child(allSingeltonObjects.signInViewModel.aadharNo.value).child("_isAdmin").setValue(true).await()
 
 
@@ -244,10 +296,18 @@ class profileViewModel : ViewModel() {
         savedPreferences.edit().putBoolean("isadmin",false).apply()
         allSingeltonObjects.signInViewModel.setIsAdmin(false)
         allSingeltonObjects.signInViewModel.setPanNo(null)
-        allSingeltonObjects.signInViewModel.signInUser()
+        allSingeltonObjects.signInViewModel.signInUser(context)
         //deleting the data from alladmin
         allSingeltonObjects.referenceToAllAdmins.child(allSingeltonObjects.signInViewModel.aadharNo.value).removeValue().await()
-
+        try {
+            allSingeltonObjects.web3jDataModel.deleteAdmin(
+                userOrAdmin = UserOrAdmin(
+                    _aadharNo = aadharNo.value
+                )
+            )
+        }catch (e :Exception){
+            Log.d("profileViewModel","web3j $e")
+        }
         allSingeltonObjects.referenceToAllVoters.child(allSingeltonObjects.signInViewModel.aadharNo.value).child("_isAdmin").setValue(false).await()
 
     }
@@ -255,8 +315,27 @@ class profileViewModel : ViewModel() {
     suspend fun getPreviousPolls(): MutableList<Poll> {       // get previous polls till now that user have participated
         var list = mutableListOf<Poll>()
         try {
-            list = allSingeltonObjects.web3jDataModel.getPreviousPoll(aadharNo.value.toLong()).toMutableList()
+           if(allSingeltonObjects.helperFunctions.isValidPrivateKey(allSingeltonObjects.privateKeyViewModelObject.privateKey.value)){
+               CoroutineScope(Dispatchers.IO).launch {
+                   list = async {
+                       allSingeltonObjects.web3jDataModel.getPreviousPoll(aadharNo.value)
+                           .toMutableList()
+                   }.await()
 
+                   for( poll in list){
+                       addItemTolist(poll)
+                   }
+
+                   withContext(Dispatchers.Main){
+                       for( poll in list){
+                           addItemTolist(poll)
+                       }
+
+                   }
+
+                   Log.d("getPreviousPolls", "called ${list.size}")
+               }
+           }
         }catch (e : Exception){
             Log.d("profileViewModel","from getPrevPoll $e")
         }
@@ -264,61 +343,101 @@ class profileViewModel : ViewModel() {
     }
     suspend fun getPollsCreated(): MutableList<Poll> {        // get all active the polls that are created by the admin
         var list = mutableListOf<Poll>()
-        try {
-            list = allSingeltonObjects.web3jDataModel.getAllPollCreatedByAdmin(aadharNo.value.toLong()).toMutableList()
+        clearList()
+        try {CoroutineScope(Dispatchers.IO).launch {
+            list = async {
+                allSingeltonObjects.web3jDataModel.getPrevPollCreatedByAdmin(aadharNo.value)
+                    .toMutableList()
+            }.await()
+            withContext(Dispatchers.Main){
+                clearList()
+                for( poll in list){
+                    addItemTolist(poll)
+                }
 
+            }
+
+            Log.d("getPollsCreated", "called ${list.size}")
+        }
         }catch (e : Exception){
             Log.d("profileViewModel","from getPollCreated $e")
-        }
-        // remove all the polls that are not active
-        for (poll in list){
-            if(poll._endTime<allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())){
-                list.remove(poll)
-            }
         }
         return list
     }
     suspend fun getPrevPollsCreated(): MutableList<Poll> {    // get all the polls that were created by the admin
         var list = mutableListOf<Poll>()
-        try {
-            list = allSingeltonObjects.web3jDataModel.getAllPollCreatedByAdmin(aadharNo.value.toLong()).toMutableList()
+        try {CoroutineScope(Dispatchers.IO).launch {
+            list = async {
+                allSingeltonObjects.web3jDataModel.getPrevPollCreatedByAdmin(aadharNo.value)
+                    .toMutableList()
+            }.await()
+            delay(1000)
 
+            withContext(Dispatchers.Main){
+                clearList()
+                for( poll in list){
+                    addItemTolist(poll)
+                }
+
+            }
+
+            Log.d("getPrevPollsCreated", "called ${list.size}")
+        }
         }catch (e : Exception){
             Log.d("profileViewModel","from getPrevPollCreated $e")
         }
-        // remove all the polls that are active
-        for (poll in list){
-            if(poll._startTime>allSingeltonObjects.helperFunctions.convertToUnixTimestamp(Date())){
-                list.remove(poll)
-            }
-        }
+
+
         return list
     }
     suspend fun getUpcomingPolls(): MutableList<Poll> {       // get all the upcoming polls
         var list = mutableListOf<Poll>()
-        try {
-            list = allSingeltonObjects.web3jDataModel.getAllUpcomingPoll(age.value.toInt()).toMutableList()
+        try {CoroutineScope(Dispatchers.IO).launch {
+            if (allSingeltonObjects.checkWeb3j()) {
+                list = async {
+                    allSingeltonObjects.web3jDataModel.getAllUpcomingPoll(age.value.toInt())
+                        .toMutableList()
+                }.await()
+                withContext(Dispatchers.Main){
+                    clearList()
+                    for( poll in list){
+                        addItemTolist(poll)
+                    }
 
+                }
+
+            }
+
+
+            Log.d("getUpcomingPolls", "called ${list.size}")
+        }
         }catch (e : Exception){
             Log.d("profileViewModel","$e")
         }
         return list
     }
 
-    suspend fun getUpcmingPollsForAdminToParticipate(): MutableList<Poll> {    // get all the polls where the admin can participate
+    suspend fun getUpcomingPollsForAdminToParticipate(): MutableList<Poll> {    // get all the polls where the admin can participate
         var list = mutableListOf<Poll>()
-        try {
-            list = allSingeltonObjects.web3jDataModel.getAllPollCreatedByAdmin(aadharNo.value.toLong()).toMutableList()
+        try {CoroutineScope(Dispatchers.IO).launch {
+            list = async {
+                allSingeltonObjects.web3jDataModel.getPollThatAdminCanPartiticipate(aadharNo.value)
+                    .toMutableList()
+            }.await()
+            withContext(Dispatchers.Main){
+                clearList()
+                for( poll in list){
+                    addItemTolist(poll)
+                }
 
-        }catch (e : Exception){
-            Log.d("profileViewModel","from getPrevPollCreated $e")
-        }
-        // remove all the polls that are active
-        for (poll in list){
-            if(poll._eligibleVoterAge>age.value.toInt()){
-                list.remove(poll)
             }
+
+            Log.d("getPollToParticipate", "called ${list.size}")
         }
+        }catch (e : Exception){
+            Log.d("profileViewModel","from getPollToParticipate $e")
+        }
+
         return list
     }
 

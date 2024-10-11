@@ -7,9 +7,15 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.dataclass.Gender
 import com.example.pollcreator.dataclass.UserOrAdmin
 import com.example.pollcreator.onlineStorage.fireBaseDataModel
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class signInViewModel() : ViewModel() {
     val fireBaseDataModel: fireBaseDataModel = allSingeltonObjects.fireBaseDataModel
@@ -27,8 +33,13 @@ class signInViewModel() : ViewModel() {
     private var _noOfPollCreated = mutableStateOf(0)
     private var _toastText = mutableStateOf<String?>(null)
     private var _toastTextProfile = mutableStateOf<String?>(null)
+    private var _isRegisteredInBC = mutableStateOf(true)
 
     // Public immutable state
+    val isRegisteredInBC : State<Boolean> get() = _isRegisteredInBC
+    fun setIsRegisteredInBC(value: Boolean){
+        _isRegisteredInBC.value=value
+    }
     val isLogin: State<Boolean> get() = _isLogin
     val isAdmin: State<Boolean> get() = _isAdmin
     val aadharNo: State<String> get() = _aadharNo
@@ -43,9 +54,6 @@ class signInViewModel() : ViewModel() {
     val toastText: State<String?> get() = _toastText
     val toastTextProfile: State<String?> get() = _toastTextProfile
 
-    // Getter and Setter functions
-
-    // Getter functions are already provided through `val` properties
 
     fun setToastText(value: String?) {
         _toastText.value = value?: null
@@ -65,7 +73,7 @@ class signInViewModel() : ViewModel() {
         _isAdmin.value = value
     }
 
-    fun setAadharNo(value: Long) {
+    fun setAadharNo(value: String) {
         _aadharNo.value = value.toString()
     }
 
@@ -81,8 +89,8 @@ class signInViewModel() : ViewModel() {
         _gender.value = value
     }
 
-    fun setName(value: String) {
-        _name.value = value
+    fun setName(value: String?) {
+        _name.value = value?: "anc"
     }
 
     fun setPanNo(value: String?) {
@@ -107,7 +115,7 @@ class signInViewModel() : ViewModel() {
 
     fun saveDataInSharedPreferences(context: Context){
         val sharedPreferences =context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
-        sharedPreferences.edit().putLong("aadharNo",_aadharNo.value.toLong()).apply()
+        sharedPreferences.edit().putString("aadharNo",_aadharNo.value).apply()
         sharedPreferences.edit().putString("password",_password.value).apply()
         sharedPreferences.edit().putString("pan",_panNo.value).apply()
         sharedPreferences.edit().putBoolean("isadmin",_isAdmin.value).apply()
@@ -127,19 +135,26 @@ class signInViewModel() : ViewModel() {
 
 
 
-    suspend fun registerAdmin(){
+    suspend fun registerAdmin(context: Context){
         setIsSuccess( fireBaseDataModel.registerAdmin(
             user = UserOrAdmin(
                 _name = _name.value,
-                _aadharNo = _aadharNo.value.toLongOrNull()?: 0L,
+                _aadharNo = _aadharNo.value,
                 _password = _password.value,
-                _gender = if (_gender.value.equals("male")) com.example.pollcreator.dataclass.Gender.MALE else com.example.pollcreator.dataclass.Gender.FEMALE,
+                _gender = if (_gender.value.equals("male")) Gender.MALE else Gender.FEMALE,
                 _age = _age.value.toIntOrNull()?: 0,
                 adminOrNot = true,
                 pan = _panNo.value
 
             )
         ))
+        val sharedPreferences =context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putString("aadharNo",_aadharNo.value).apply()
+        sharedPreferences.edit().putString("password",_password.value).apply()
+        sharedPreferences.edit().putString("pan",_panNo.value).apply()
+        sharedPreferences.edit().putBoolean("isadmin",true).apply()
+        delay(300)
+        getUserDetails()
 
         allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
 
@@ -147,11 +162,11 @@ class signInViewModel() : ViewModel() {
 
     }
 
-    suspend fun registerUser(){
+    suspend fun registerUser(context: Context){
         setIsSuccess( fireBaseDataModel.registerUser(
             user = UserOrAdmin(
                 _name = _name.value,
-                _aadharNo = _aadharNo.value.toLongOrNull()?: 0,
+                _aadharNo = _aadharNo.value,
                 _password = _password.value,
                 _gender = if (_gender.value.equals("male")) com.example.pollcreator.dataclass.Gender.MALE else com.example.pollcreator.dataclass.Gender.FEMALE,
                 _age = _age.value.toIntOrNull()?: 0,
@@ -159,27 +174,53 @@ class signInViewModel() : ViewModel() {
                 pan = null
             )
         ))
+        val sharedPreferences =context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putString("aadharNo",_aadharNo.value).apply()
+        sharedPreferences.edit().putString("password",_password.value).apply()
+        sharedPreferences.edit().putString("pan",_panNo.value).apply()
+        sharedPreferences.edit().putBoolean("isadmin",false).apply()
+        delay(300)
+        getUserDetails()
+
         allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
         Log.d("from ViewModel", "${_aadharNo.value}  ${_password.value}  ")
 
     }
 
-    suspend fun signInAdmin(){
+    suspend fun signInAdmin(context: Context){
+
+        val sharedPreferences =context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putString("aadharNo",_aadharNo.value).apply()
+        sharedPreferences.edit().putString("password",_password.value).apply()
+        sharedPreferences.edit().putString("pan",_panNo.value).apply()
+        sharedPreferences.edit().putBoolean("isadmin",true).apply()
         setIsSuccess( fireBaseDataModel.signInAdmin(
-            aadharNo = _aadharNo.value.toLongOrNull()?: 0,
+            aadharNo = _aadharNo.value,
             password = _password.value,
             pan = _panNo.value?:null
         ))
+        delay(300)
+        getUserDetails()
+
         allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
         Log.d("from ViewModel", "${_aadharNo.value}  ${_password.value}  ")
 
     }
 
-    suspend fun signInUser(){
+    suspend fun signInUser(context: Context){
         setIsSuccess( fireBaseDataModel.signInUser(
-            aadharNo = _aadharNo.value.toLongOrNull()?: 0,
+            aadharNo = _aadharNo.value,
             password = _password.value
         ))
+
+        val sharedPreferences =context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putString("aadharNo",_aadharNo.value).apply()
+        sharedPreferences.edit().putString("password",_password.value).apply()
+        sharedPreferences.edit().putBoolean("isadmin",false).apply()
+        delay(300)
+
+        getUserDetails()
+
         allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
         Log.d("from ViewModel", "${_aadharNo.value}  ${_password.value}  ")
 
@@ -193,27 +234,73 @@ class signInViewModel() : ViewModel() {
         }
     }
 
-    suspend fun logout(){
+    suspend fun logout(context: Context){
 
         fireBaseDataModel.logout()
+        val sharedPreferences =context.getSharedPreferences("LoginData", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.clear()
+        editor.apply()
+        allSingeltonObjects.privateKeyViewModelObject= privateKeyViewModel()
 
         allSingeltonObjects.signInViewModel.setToastTextProfile("Logged Out Successfully !!!")
 
         makeAllFieldsNull()
+
+
     }
 
     suspend fun getUserDetails(){
-        if(_aadharNo.value!=null){
-            val userInfoFromFirebase = fireBaseDataModel.getUserDetails(_aadharNo.value.toLongOrNull()?: 100020003000 )
-            setName(userInfoFromFirebase!!._name)
-            setIsAdmin(userInfoFromFirebase!!.adminOrNot?: false)
-            setAge(userInfoFromFirebase!!._age)
-            setGender(userInfoFromFirebase!!._gender.toString())
-            setPanNo(userInfoFromFirebase!!.pan)
-            setNoOfPollCreated(userInfoFromFirebase!!.noOfPollCreated?: 0)
-            setPassword(userInfoFromFirebase!!._password)
+        Log.d("aadhar check","${_aadharNo.value}")
+        if(_aadharNo.value.length==12){
+
+            CoroutineScope(Dispatchers.IO).launch {
+                val userInfoFromFirebase = async { fireBaseDataModel.getUserDetails(_aadharNo.value)}.await()
+                if(userInfoFromFirebase!=null){
+                    setName(userInfoFromFirebase!!._name)
+                    setIsAdmin(userInfoFromFirebase!!.adminOrNot ?: false)
+                    setAge(userInfoFromFirebase!!._age)
+                    setGender(userInfoFromFirebase!!._gender.toString())
+                    setPanNo(userInfoFromFirebase!!.pan)
+                    setNoOfPollCreated(userInfoFromFirebase!!.noOfPollCreated!!.toInt())
+                    Log.d("SignInVM", "${noOfPollCreated.value}")
+                    setPassword(userInfoFromFirebase!!._password)
+                    setIsRegisteredInBC(userInfoFromFirebase._isRegisteredInBC)
+                }
+
+            }
 
         }
+    }
+    suspend fun getUserDetailsUser():UserOrAdmin{
+        if(_aadharNo.value.length==12){
+            getUserDetails()
+            return UserOrAdmin(
+                _aadharNo = aadharNo.value,
+                _password = password.value,
+                _gender=if(_gender.value=="male") Gender.MALE else Gender.FEMALE,
+                _age = age.value.toInt(),
+                _name = name.value,
+                adminOrNot = isAdmin.value,
+                pan = panNo.value,
+                noOfPollCreated = noOfPollCreated.value,
+                _isRegisteredInBC = isRegisteredInBC.value
+            )
+
+        }else{
+            return UserOrAdmin(
+                _aadharNo = "999999999999",
+                _password = "999999999999",
+                _gender=Gender.MALE ,
+                _age = 18,
+                _name = "dummy data",
+                adminOrNot = true,
+                pan = "9999999999",
+                noOfPollCreated = 0,
+                _isRegisteredInBC = true
+            )
+        }
+
     }
 
 

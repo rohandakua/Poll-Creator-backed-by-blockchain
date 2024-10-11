@@ -1,6 +1,8 @@
 package com.example.pollcreator.screens
 
 import androidx.compose.foundation.Image
+
+import androidx.navigation.NavController
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -53,56 +56,37 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
+import com.example.pollcreator.allSingeltonObjects
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBackgroundLight
 import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
 public fun participate_in_poll_confirmation(
     modifier: Modifier = Modifier,
     onParticipateBtnClick: () -> Unit = {},
-    navController: NavHostController = rememberNavController()
+    navController: NavController
 ) {
-    var name by remember {
-        mutableStateOf("")
-    }
-    var aadharNo by remember {
-        mutableStateOf<Long?>(null)
-    }
-    var password by remember {
-        mutableStateOf("")
-    }
-
-
+    val name by allSingeltonObjects.pollViewModel.Name
+    val aadharNo by allSingeltonObjects.pollViewModel.Aadhar
+    val password by allSingeltonObjects.pollViewModel.Password
+    val agenda by allSingeltonObjects.pollViewModel.Agenda
+    val yearlyIncome by allSingeltonObjects.pollViewModel.YearlyIncome
+    val age by allSingeltonObjects.pollViewModel.Age
+    val gender by allSingeltonObjects.pollViewModel.GenderVM
     var passwordVisible by remember { mutableStateOf(false) }
-
-    var agenda by remember {
-        mutableStateOf("")
-    }
-
-
-    var yearlyIncome by remember {
-        mutableStateOf<Long?>(null)
-    }
-
-
-    var age by remember {
-        mutableStateOf<Int?>(null)
-    }
-
-
-    var gender by remember {
-        mutableStateOf("")
-    }
+    val context = LocalContext.current
 
 
     Box(
@@ -158,7 +142,7 @@ public fun participate_in_poll_confirmation(
                 ) {
                     TextField(
                         value = name,
-                        onValueChange = { name = it },
+                        onValueChange = { allSingeltonObjects.pollViewModel.setName(it) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 5.dp),
@@ -203,8 +187,8 @@ public fun participate_in_poll_confirmation(
 
 
                     TextField(
-                        value = aadharNo?.toString() ?: "",
-                        onValueChange = { aadharNo = it.toLongOrNull() },
+                        value = aadharNo,
+                        onValueChange = { allSingeltonObjects.pollViewModel.setAadhar(it) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 5.dp),
@@ -248,8 +232,8 @@ public fun participate_in_poll_confirmation(
 
 
                     TextField(
-                        value = age?.toString() ?: "",
-                        onValueChange = { age = it.toIntOrNull() },
+                        value = age,
+                        onValueChange = { allSingeltonObjects.pollViewModel.setAge(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(25.dp),
                         singleLine = true,
@@ -312,7 +296,7 @@ public fun participate_in_poll_confirmation(
                         ) {
                             RadioButton(
                                 selected = if (gender.equals("male")) true else false,
-                                onClick = { gender = "male" },
+                                onClick = { allSingeltonObjects.pollViewModel.setGender("male") },
                                 colors = RadioButtonColors(
                                     selectedColor = Color.White,
                                     unselectedColor = Color.Transparent,
@@ -338,7 +322,7 @@ public fun participate_in_poll_confirmation(
                         ) {
                             RadioButton(
                                 selected = if (gender.equals("female")) true else false,
-                                onClick = { gender = "female" },
+                                onClick = { allSingeltonObjects.pollViewModel.setGender("female") },
                                 colors = RadioButtonColors(
                                     selectedColor = Color.White,
                                     unselectedColor = Color.Transparent,
@@ -352,8 +336,8 @@ public fun participate_in_poll_confirmation(
                     }
 
                     TextField(
-                        value = yearlyIncome?.toString() ?: "",
-                        onValueChange = { yearlyIncome = it.toLongOrNull() },
+                        value = yearlyIncome,
+                        onValueChange = { allSingeltonObjects.pollViewModel.setYearlyIncome(it) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 5.dp),
@@ -397,7 +381,7 @@ public fun participate_in_poll_confirmation(
 
                     TextField(
                         value = agenda,
-                        onValueChange = { agenda = it },
+                        onValueChange = {allSingeltonObjects.pollViewModel.setAgenda(it) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 5.dp),
@@ -433,8 +417,8 @@ public fun participate_in_poll_confirmation(
 
                     )
                     TextField(
-                        value = password?.toString() ?: "",
-                        onValueChange = { password = it.toString() },
+                        value = password,
+                        onValueChange = { allSingeltonObjects.pollViewModel.setPassword(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(25.dp),
                         colors = TextFieldDefaults.textFieldColors(
@@ -495,7 +479,14 @@ public fun participate_in_poll_confirmation(
 
             }
             Card(modifier = Modifier
-                .clickable { onParticipateBtnClick }
+                .clickable {
+                    allSingeltonObjects.pollViewModel.becomeCandidate(context)
+                    CoroutineScope(Dispatchers.Main).launch{
+                        delay(1000)
+                        navController.navigate("adminDashBoard")
+                    }
+
+                }
                 .size(height = 55.dp, width = 200.dp),
                 shape = RoundedCornerShape(20.dp),
                 elevation = CardDefaults.cardElevation(

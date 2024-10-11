@@ -33,9 +33,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
+import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.dataclass.Poll
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBackgroundLight
 import com.example.pollcreator.ui.theme.CardBorderDark
@@ -44,19 +47,20 @@ import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
+
 @Composable
 public fun participate_details(
     modifier: Modifier = Modifier,
     onPrevVoteButton: () -> Unit = {},
     onProfileButton: () -> Unit = {},
     onParticipateButton: () -> Unit = {},
-    navController: NavHostController = rememberNavController(),
-    totalNoParticipants: Long = 5555555555,     // total no of participants in the poll
-    noOfFemaleParticipants: Long = 5555555555,      // total no of participant in the poll that are female
-    noOfMaleParticipants: Long = 5555555555         // total no of participant in the poll that are male
+    navController: NavController
 ) {
+    val k = allSingeltonObjects.pollViewModel.getDetailsOfPoll()
 
+    var noOfFemaleParticipants: Long = k._noOfFemaleVoter?: 0L    // total no of participant in the poll that are female
+    var noOfMaleParticipants: Long = k._noOfMaleVoter?: 0L        // total no of participant in the poll that are male
+    var totalNoParticipants: Long = noOfMaleParticipants+noOfFemaleParticipants   // total no of participants in the poll
 
     Box(
         modifier = Modifier
@@ -96,7 +100,7 @@ public fun participate_details(
                     .fillMaxHeight(.5f),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             ) {
-               // each_poll_item_upcoming_poll(modifier = Modifier.fillMaxHeight(.45f))
+                each_poll_item_upcoming_poll(modifier = Modifier.fillMaxHeight(.45f), pollItem = allSingeltonObjects.profileViewModel.getPollItem()?: Poll(), navController = navController)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -212,7 +216,9 @@ public fun participate_details(
             }
             Card(
                 modifier = Modifier
-                    .clickable { onParticipateButton }    // here apply the function of the participate button that takes to the participate page
+                    .clickable {
+                        navController.navigate("participateInAPollConfirmation")
+                    }    // here apply the function of the participate button that takes to the participate page
                     .fillMaxWidth(.8f)
                     .fillMaxHeight(.15f),
                 shape = RoundedCornerShape(20.dp),
@@ -245,7 +251,9 @@ public fun participate_details(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Card(modifier = Modifier
-                    .clickable { onPrevVoteButton }
+                    .clickable {
+                        navController.popBackStack("adminDashBoard",false)
+                    }
                     .size(height = 60.dp, width = 200.dp),
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(width = 2.dp, color = CardBorderDark),
@@ -276,7 +284,7 @@ public fun participate_details(
                     Modifier
                         .padding(end = 30.dp)
                         .size(50.dp)
-                        .clickable { onProfileButton }
+                        .clickable { navController.navigate("profile") }
 
                 )
 

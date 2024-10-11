@@ -75,8 +75,8 @@ fun login_page(
 ) {
     val viewModel : signInViewModel = allSingeltonObjects.signInViewModel
 
-    val isLogin by viewModel.isLogin
-    val isAdmin by viewModel.isAdmin
+    val isLogin by allSingeltonObjects.signInViewModel.isLogin
+    val isAdmin by allSingeltonObjects.signInViewModel.isAdmin
 
     viewModel.setIsLogin(isLoginFromSuper)
     viewModel.setIsAdmin(isAdminFromSuper)
@@ -90,12 +90,12 @@ fun login_page(
     var isPan: Boolean = isAdmin
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val aadharNo by viewModel.aadharNo
-    val password by viewModel.password
-    val age by viewModel.age
-    val gender by viewModel.gender
-    val name by viewModel.name
-    val panNo by viewModel.panNo
+    val aadharNo by allSingeltonObjects.signInViewModel.aadharNo
+    val password by allSingeltonObjects.signInViewModel.password
+    val age by allSingeltonObjects.signInViewModel.age
+    val gender by allSingeltonObjects.signInViewModel.gender
+    val name by allSingeltonObjects.signInViewModel.name
+    val panNo by allSingeltonObjects.signInViewModel.panNo
 
     val localContext = LocalContext.current
 
@@ -349,7 +349,7 @@ fun login_page(
 
                     TextField(
                         value = aadharNo?.toString() ?: "",
-                        onValueChange = { viewModel.setAadharNo(it.toLongOrNull()?: 0L) },
+                        onValueChange = { viewModel.setAadharNo(it?: "") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(25.dp),
                         singleLine = true,
@@ -443,7 +443,7 @@ fun login_page(
                     Card(modifier = Modifier
                         .clickable {
                             Log.d("buttonClickedOrNot", "clickeddddd")
-                            allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
+                            //allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
 
 
 
@@ -457,20 +457,10 @@ fun login_page(
 
                                     Log.d("signIn_admin", "registering admin")
                                     viewModel.viewModelScope.launch {
+                                        viewModel.signInUser(localContext)
                                         allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
-                                        viewModel.signInUser()
-                                        viewModel.saveDataInSharedPreferences(context = localContext)
                                     }
-                                    if (isSuccess && !isAdmin) {
-                                        // use nav controller to go to next screen and remove that from backstack
-
-                                        navController.navigate("successAnimation/${isSuccess}")
-
-                                    } else if (isSuccess && isAdmin) {
-                                        navController.navigate("successAnimation/${isSuccess}")
-                                    } else {
-                                        navController.navigate("successAnimation/${isSuccess}")
-                                    }
+                                    navController.navigate("successAnimation/${isSuccess}")
                                 }
 
                                 Log.d("after viewmodel register user", "called")
@@ -480,22 +470,13 @@ fun login_page(
                                     Toast.makeText(localContext,"Fill all the details",Toast.LENGTH_SHORT).show()
 
                                 }else {
-                                    Log.d("register_admin", "registering admin")
+                                    Log.d("signin_admin", "signing admin")
                                     viewModel.viewModelScope.launch {
+                                        viewModel.signInAdmin(localContext)
                                         allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
-                                        viewModel.signInAdmin()
-                                        viewModel.saveDataInSharedPreferences(context = localContext)
                                     }
-                                    if (isSuccess && !isAdmin) {
-                                        // use nav controller to go to next screen and remove that from backstack
+                                    navController.navigate("successAnimation/${isSuccess}")
 
-                                        navController.navigate("successAnimation/${isSuccess}")
-
-                                    } else if (isSuccess && isAdmin) {
-                                        navController.navigate("successAnimation/${isSuccess}")
-                                    } else {
-                                        navController.navigate("successAnimation/${isSuccess}")
-                                    }
                                 }
                                 Log.d("after viewmodel register user", "called")
                             } else if (!isLogin && !isAdmin) {
@@ -507,19 +488,9 @@ fun login_page(
                                     Log.d("register_admin", "registering admin")
                                     viewModel.viewModelScope.launch {
                                         allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
-                                        viewModel.registerUser()
-                                        viewModel.saveDataInSharedPreferences(context = localContext)
+                                        viewModel.registerUser(context = localContext)
                                     }
-                                    if (isSuccess && !isAdmin) {
-                                        // use nav controller to go to next screen and remove that from backstack
-
                                         navController.navigate("successAnimation/${isSuccess}")
-
-                                    } else if (isSuccess && isAdmin) {
-                                        navController.navigate("successAnimation/${isSuccess}")
-                                    } else {
-                                        navController.navigate("successAnimation/${isSuccess}")
-                                    }
                                 }
                                 Log.d("after viewmodel register user", "called")
                             } else if (!isLogin && isAdmin) {
@@ -532,19 +503,9 @@ fun login_page(
                                     Log.d("register_admin", "registering admin")
                                     viewModel.viewModelScope.launch {
                                         allSingeltonObjects.profileViewModel.getCopyOfDetailsFromSignIn()
-                                        viewModel.registerAdmin()
-                                        viewModel.saveDataInSharedPreferences(context = localContext)
+                                        viewModel.registerAdmin(context = localContext)
                                     }
-                                    if (isSuccess && !isAdmin) {
-                                        // use nav controller to go to next screen and remove that from backstack
-
-                                        navController.navigate("successAnimation/${isSuccess}")
-
-                                    } else if (isSuccess && isAdmin) {
-                                        navController.navigate("successAnimation/${isSuccess}")
-                                    } else {
-                                        navController.navigate("successAnimation/${isSuccess}")
-                                    }
+                                    navController.navigate("successAnimation/${isSuccess}")
                                 }
                                 Log.d("after viewmodel register user", "called")
                             }

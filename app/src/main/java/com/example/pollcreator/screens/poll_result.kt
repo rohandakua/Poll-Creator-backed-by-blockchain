@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
@@ -51,13 +52,12 @@ import com.example.pollcreator.ui.theme.TextOnBackgroundLight
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
 public fun poll_result(
     modifier: Modifier = Modifier,
     onPrevVoteButton: () -> Unit = {},
     onProfileButton: () -> Unit = {},
-    navController: NavHostController = rememberNavController()
+    navController: NavController
     //list of the participant with their votes pass here as a parameter
 ) {
     //getting the poll details from pollViewModel
@@ -326,7 +326,7 @@ public fun poll_result(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Card(modifier = Modifier
-                    .clickable { onPrevVoteButton }
+                    .clickable { navController.navigate("prevPollUserParticipated") }
                     .size(height = 60.dp, width = 200.dp),
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(width = 2.dp, color = CardBorderDark),
@@ -357,7 +357,7 @@ public fun poll_result(
                     Modifier
                         .padding(end = 30.dp)
                         .size(50.dp)
-                        .clickable { onProfileButton }
+                        .clickable { navController.navigate("profile") }
 
                 )
 

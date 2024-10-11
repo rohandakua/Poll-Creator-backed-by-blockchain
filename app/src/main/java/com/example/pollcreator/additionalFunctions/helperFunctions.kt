@@ -1,4 +1,5 @@
 package com.example.pollcreator.additionalFunctions
+import android.util.Log
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.crypto.Sign
@@ -24,7 +25,7 @@ class helperFunctions {
         }
     }
     fun getDateFromTimestamp(timestamp: Long): String {
-        val date = Date(timestamp)
+        val date = Date(timestamp )
         val format = SimpleDateFormat("dd MMM yyyy hh:mm a", Locale.getDefault()) // Adjust format as needed
         return format.format(date)
     }
@@ -74,31 +75,42 @@ class helperFunctions {
         return gmtCalendar.time
     }
 
-
+    fun convertDateTimeToUnix(dateString: String, timeString: String): Long {
+        // Combine date and time format
+        val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        // Combine the date and time strings
+        val dateTimeString = "$dateString $timeString"
+        // Parse the combined string into a Date object
+        val date = format.parse(dateTimeString)
+        // Return the Unix timestamp (milliseconds since epoch), or 0L if parsing fails
+        return date?.time ?: 0L
+    }
 
     fun convertToUnixTimestamp(date: Date): Long {
         // Return the Unix timestamp (seconds since 1970-01-01 00:00:00 UTC)
-        return date.time / 1000
+        return date.time
     }
 
     fun convertToUnixTimestampIST(date: Date): Long {
         // Return the Unix timestamp (seconds since 1970-01-01 00:00:00 UTC)
         var date1 = convertIstToGmt(date)
-        return date1.time / 1000
+        return date1.time
+    }
+    fun convertDateToUnix(dateString: String): Long {
+        val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val date = format.parse(dateString)
+        return date?.time ?: 0L // Returns 0L if parsing fails
+    }
+
+    fun getPollId(doubleValue: Double, longValue: Long): Double {
+        Log.d("doubleValue",doubleValue.toString()+" "+longValue)
+        val longAsDouble = longValue.toString().toDouble() / Math.pow(10.0, longValue.toString().length.toDouble())
+        return doubleValue + longAsDouble
     }
 
 
     fun main() {
-        // Example usage
-        val currentDate = createCustomDate(
-            year = 2024,
-            month = 8,
-            day = 31,
-            hour = 13,
-            minute = 5
-        )
-        val unixTimestamp = convertToUnixTimestamp(currentDate)
-        println("Unix Timestamp in IST: $unixTimestamp")
+        println(getPollId(1230.0, 123456789))
     }
 
     fun convertToDate(dateString: String, timeString: String): Date? {

@@ -1,5 +1,6 @@
 package com.example.pollcreator.screens
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
@@ -48,6 +51,7 @@ import com.example.pollcreator.ui.theme.MainBackground
 import com.example.pollcreator.ui.theme.TextFieldBackground
 import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 
 @Preview(
@@ -62,43 +66,11 @@ public fun list_of_poll(
     heading: String = "Previous Polls",
     subHeading: String = "Your vote Matters",
     textOnbtn: String = "Upcoming Polls",
-    navController: NavHostController = rememberNavController(),
+    navController: NavController = rememberNavController(),
     list: List<Poll> = mutableListOf(
         Poll(
-            _pollId = 100010001000.1000,
-            _pollCreatedBy = 100010001000,
-            _agendaOfPoll = "pollAgenda",
-            _eligibleVoterAge = 20,
-            _startTime = 1633036800000,
-            _endTime = 1633036899999
-        ),
-        Poll(
-            _pollId = 100010001000.1000,
-            _pollCreatedBy = 100010001000,
-            _agendaOfPoll = "pollAgenda",
-            _eligibleVoterAge = 20,
-            _startTime = 1633036800000,
-            _endTime = 1633036899999
-        ),
-        Poll(
-            _pollId = 100010001000.1000,
-            _pollCreatedBy = 100010001000,
-            _agendaOfPoll = "pollAgenda",
-            _eligibleVoterAge = 20,
-            _startTime = 1633036800000,
-            _endTime = 1633036899999
-        ),
-        Poll(
-            _pollId = 100010001000.1000,
-            _pollCreatedBy = 100010001000,
-            _agendaOfPoll = "pollAgenda",
-            _eligibleVoterAge = 20,
-            _startTime = 1633036800000,
-            _endTime = 1633036899999
-        ),
-        Poll(
-            _pollId = 100010001000.1000,
-            _pollCreatedBy = 100010001000,
+            _pollId ="1001100110011",
+            _pollCreatedBy = "100010001000",
             _agendaOfPoll = "pollAgenda",
             _eligibleVoterAge = 20,
             _startTime = 1633036800000,
@@ -107,16 +79,29 @@ public fun list_of_poll(
     ),
     method:String="prev_poll_user_participated"
 ) {
-    var  listComing: MutableList<Poll> = mutableListOf()
+    val listComing by allSingeltonObjects.profileViewModel.listpm.observeAsState(initial = emptyList())
     LaunchedEffect(true) {
         if(method=="prev_poll_user_participated"){
-            listComing=allSingeltonObjects.profileViewModel.getPreviousPolls()
+            if(allSingeltonObjects.privateKeyViewModelObject.privateKey.value.length==64){
+                async {  allSingeltonObjects.profileViewModel.getPreviousPolls()}.await()
+            }
+//            listComing=allSingeltonObjects.profileViewModel.getPreviousPolls()
+
         }else if(method=="upcoming_poll_user"){
-            listComing=allSingeltonObjects.profileViewModel.getUpcomingPolls()
+            if(allSingeltonObjects.privateKeyViewModelObject.privateKey.value.length==64){
+                async {  allSingeltonObjects.profileViewModel.getUpcomingPolls()}.await()
+            }
+//            listComing=allSingeltonObjects.profileViewModel.getUpcomingPolls()
         }else if(method=="prev_poll_admin_created"){
-            listComing=allSingeltonObjects.profileViewModel.getPrevPollsCreated()
+            if(allSingeltonObjects.privateKeyViewModelObject.privateKey.value.length==64){
+                async {  allSingeltonObjects.profileViewModel.getPrevPollsCreated()}.await()
+            }
+//            listComing=allSingeltonObjects.profileViewModel.getPrevPollsCreated()
         }else if(method=="active_poll_admin_created"){
-            listComing=allSingeltonObjects.profileViewModel.getPollsCreated()
+            if(allSingeltonObjects.privateKeyViewModelObject.privateKey.value.length==64){
+                async {  allSingeltonObjects.profileViewModel.getPollsCreated()}.await()
+            }
+//            listComing=allSingeltonObjects.profileViewModel.getPollsCreated()
         }
 
     }
@@ -198,7 +183,7 @@ public fun list_of_poll(
                         }
 
                         LaunchedEffect(key1 = true) {
-                            delay(8000)
+                            delay(22000)
                             sett("No Polls Available")
                         }
                         Text(text = t, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextOnBackgroundDark)
@@ -256,7 +241,7 @@ public fun list_of_poll(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Card(modifier = Modifier
-                    .clickable { navController.popBackStack() }
+                    .clickable { navController.navigate("prevPollUserParticipated") }
                     .size(height = 60.dp, width = 200.dp),
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(width = 2.dp, color = CardBorderDark),
@@ -287,7 +272,7 @@ public fun list_of_poll(
                     Modifier
                         .padding(end = 30.dp)
                         .size(50.dp)
-                        .clickable { onProfileButton }
+                        .clickable { navController.navigate("profile") }
 
                 )
 

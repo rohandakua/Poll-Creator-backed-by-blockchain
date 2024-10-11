@@ -14,7 +14,7 @@ class privateKeyViewModel : ViewModel() {
 
     val showHelp: State<Boolean> = _showHelp
     val showDialog: State<Boolean> = _showDialog
-    val privateKey: State<String?> = _privateKey
+    val privateKey: State<String> = _privateKey
 
     fun setShowHelp(value: Boolean){
         _showHelp.value = value

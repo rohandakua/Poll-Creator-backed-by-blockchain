@@ -1,8 +1,8 @@
 package com.example.pollcreator.dataclass
 
 data class allAdminObj(
-    val _aadharNo: Long,
+    val _aadharNo: String,
     val _isRegisteredAsAdmin: Boolean,
-    val _pollsCreated : MutableList<Double>,
-    val _pollsParticipated : MutableList<Double>
+    val _pollsCreated : MutableList<String>,
+    val _pollsParticipated : MutableList<String>
 )

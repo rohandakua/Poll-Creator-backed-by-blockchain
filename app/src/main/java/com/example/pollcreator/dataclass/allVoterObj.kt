@@ -1,9 +1,9 @@
 package com.example.pollcreator.dataclass
 
 data class allVoterObj(
-    val _aadharNo : Long,
+    val _aadharNo : String,
     val _isAdmin:Boolean,
-    val _pollsVotedOn:MutableList<Double>
+    val _pollsVotedOn:MutableList<String>
 
 
 )

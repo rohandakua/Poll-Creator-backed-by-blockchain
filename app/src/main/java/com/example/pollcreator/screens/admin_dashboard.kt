@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -32,6 +34,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +55,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pollcreator.R
 import com.example.pollcreator.allSingeltonObjects
+import com.example.pollcreator.dataclass.Event
+import com.example.pollcreator.dataclass.Poll
 import com.example.pollcreator.onlineStorage.web3jDataModel
 import com.example.pollcreator.ui.theme.ButtonBackground
 import com.example.pollcreator.ui.theme.CardBackgroundLight
@@ -57,8 +67,10 @@ import com.example.pollcreator.ui.theme.TextOnBackgroundDark
 import com.example.pollcreator.ui.theme.TextOnBackgroundLight
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
@@ -71,6 +83,18 @@ public fun admin_dashboard(
 ) {
     val context = LocalContext.current
     var showWebView = allSingeltonObjects.privateKeyViewModelObject.showHelp.value
+    LaunchedEffect(true) {
+        allSingeltonObjects.profileViewModel.getUserDetails(context.applicationContext)
+    }
+    val list by allSingeltonObjects.profileViewModel.listpm.observeAsState(initial = emptyList())
+    LaunchedEffect(true){
+        if(allSingeltonObjects.privateKeyViewModelObject.privateKey.value.length==64){
+            async {  allSingeltonObjects.profileViewModel.getUpcomingPolls()}.await()
+
+        }
+    }
+
+
 
 
     if (allSingeltonObjects.privateKeyViewModelObject.showDialog.value) {
@@ -94,11 +118,36 @@ public fun admin_dashboard(
                             allSingeltonObjects.privateKeyViewModelObject.privateKey.value
                         )
                     ) {
+
                         allSingeltonObjects.privateKeyViewModelObject.setShowDialog(false)
                         Log.d("private key","${allSingeltonObjects.privateKeyViewModelObject.privateKey.value}")
                         CoroutineScope(Dispatchers.IO).launch {
-                            delay(1000)
+
                             allSingeltonObjects.web3jDataModel= web3jDataModel()
+                            delay(500)
+                            //checking if the user is registered in the blockchain
+                            if(!allSingeltonObjects.signInViewModel.isRegisteredInBC.value && allSingeltonObjects.signInViewModel.aadharNo.value.length==12){
+                                    val tt=async { allSingeltonObjects.signInViewModel.getUserDetailsUser()}.await()
+                                   if( allSingeltonObjects.web3jDataModel.becomeAdmin(tt)==Event.SUCCESS){
+                                       CoroutineScope(Dispatchers.Main).launch {
+                                            Toast.makeText(context,"Successfully registered , Always use same private key for this account",Toast.LENGTH_LONG).show()
+
+                                       }
+                                }else{
+                                       CoroutineScope(Dispatchers.Main).launch {
+
+                                           Toast.makeText(context,"Not Registered , Please try again later",Toast.LENGTH_LONG).show()
+
+                                       }
+                                   }
+
+                            }
+                        }
+                        CoroutineScope(Dispatchers.IO).launch{
+                            if(allSingeltonObjects.privateKeyViewModelObject.privateKey.value.length==64){
+                                async {  allSingeltonObjects.profileViewModel.getUpcomingPolls()}.await()
+
+                            }
                         }
                         Toast.makeText(context,"Success",Toast.LENGTH_SHORT).show()
                     } else {
@@ -258,20 +307,38 @@ public fun admin_dashboard(
                 colors = CardDefaults.elevatedCardColors(containerColor = TextFieldBackground),
                 border = BorderStroke(width = 2.dp, color = TextOnBackgroundDark)
             ) {
-                Card(
-                    Modifier.verticalScroll(rememberScrollState()),
-                    colors = CardDefaults.elevatedCardColors(containerColor = Color.Transparent)
-                ) {
-                    each_poll_item_upcoming_poll(modifier = Modifier.height(150.dp))
-                    each_poll_item_upcoming_poll(modifier = Modifier.height(150.dp))
-                    each_poll_item_upcoming_poll(modifier = Modifier.height(150.dp))
-                    each_poll_item_upcoming_poll(modifier = Modifier.height(150.dp))
+                if(list.isEmpty()||allSingeltonObjects.privateKeyViewModelObject.privateKey.value.length!=64){
+                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        var t  by remember {
+                            mutableStateOf("Loading...")
+                        }
+                        fun sett(a:String){
+                            t=a
+                        }
 
-                    //implement here the list of the votes that are currently active
+                        LaunchedEffect(true) {
+                            delay(22000)
+                            sett("No Polls Available")
 
-                    // fix the height of the each item to 150.dp
+                        }
 
+                        Text(text = t, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextOnBackgroundDark)
+                    }
+
+                }else {
+                    LazyColumn {
+                        items(list) { pollItem ->
+                            each_poll_item_upcoming_poll(
+                                modifier = Modifier.height(150.dp),
+                                pollItem = pollItem,
+                                navController = navController
+                            )
+                        }
+
+                    }
                 }
+
+
 
 
             }
@@ -284,7 +351,9 @@ public fun admin_dashboard(
             ) {
 
                 Card(modifier = Modifier
-                    .clickable { }
+                    .clickable {
+                        navController.navigate("prevPollAdminCreated")
+                    }
                     .size(height = 50.dp, width = 250.dp),
                     shape = RoundedCornerShape(20.dp),
                     elevation = CardDefaults.cardElevation(
@@ -308,7 +377,9 @@ public fun admin_dashboard(
                 Spacer(modifier = Modifier.size(10.dp))
 
                 Card(modifier = Modifier
-                    .clickable { }
+                    .clickable {
+                        navController.navigate("participateInAPollAsParticipant")
+                    }
                     .size(height = 50.dp, width = 250.dp),
                     shape = RoundedCornerShape(20.dp),
                     elevation = CardDefaults.cardElevation(
@@ -337,7 +408,9 @@ public fun admin_dashboard(
 
                 ) {
                     Card(modifier = Modifier
-                        .clickable { }
+                        .clickable {
+                            navController.navigate("activePollAdminCreated")
+                        }
                         .weight(1f),
                         shape = RoundedCornerShape(20.dp),
                         elevation = CardDefaults.cardElevation(
@@ -361,7 +434,9 @@ public fun admin_dashboard(
                     Spacer(modifier = Modifier.size(10.dp))
 
                     Card(modifier = Modifier
-                        .clickable { }
+                        .clickable {
+                            navController.navigate("createPoll")
+                        }
                         .weight(1f),
                         shape = RoundedCornerShape(20.dp),
                         elevation = CardDefaults.cardElevation(
@@ -399,7 +474,9 @@ public fun admin_dashboard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Card(modifier = Modifier
-                    .clickable { onPrevVoteButton }
+                    .clickable {
+                        navController.navigate("prevPollUserParticipated")
+                    }
                     .size(height = 60.dp, width = 200.dp),
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(width = 2.dp, color = CardBorderDark),
@@ -443,3 +520,5 @@ public fun admin_dashboard(
     }
 
 }
+
+
